@@ -37,6 +37,8 @@ def download_and_place(server_path: SystemUtilities, force_download: bool = Fals
             server_download_url = url_data["downloadUrl"]
     if server_download_url is None:
         raise KeyError("No download URL for Linux server found.")
+    if not server_path.executable_and_properties_exist():
+        force_download = True
     if server_path.last_update_url == server_download_url and not force_download:
         return
     try:
@@ -49,8 +51,11 @@ def download_and_place(server_path: SystemUtilities, force_download: bool = Fals
         raise ConnectionError("Request for server download unsuccessful.")
     server_path.last_update_url = server_download_url
     with ZipFile(BytesIO(server_zip_data)) as server_zip:
-        members = [file for file in server_zip.namelist() if file not in _EXCLUDE_FILES]
-        members = [file for file in members for folder in _EXCLUDE_DIRS if not file.startswith(folder)]
+        if force_download:
+            members = server_zip.namelist()
+        else:
+            members = [file for file in server_zip.namelist() if file not in _EXCLUDE_FILES]
+            members = [file for file in members for folder in _EXCLUDE_DIRS if not file.startswith(folder)]
         server_zip.extractall(server_path.server_subfolder, members=members)
     with open(server_path.starter_path, "w") as starter_file:
         starter_file.writelines([

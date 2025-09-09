@@ -8,6 +8,7 @@ class SystemUtilities:
 
     _DIR = join(Path.home(), ".bedrock_servers")
     _BEDROCK_SERVER_PROGRAM_NAME = "bedrock_server"
+    _BEDROCK_SERVER_PROPERTIES_FILE_NAME = "server.properties"
 
     def __init__(self, name: str) -> None:
         if not name.isalnum() or len(name) <= 4:
@@ -34,8 +35,11 @@ class SystemUtilities:
     def executable_path(self) -> str:
         return join(self.server_subfolder, self._BEDROCK_SERVER_PROGRAM_NAME)
 
-    def executable_exists(self) -> bool:
-        return isfile(self.executable_path) and isfile(self.starter_path)
+    def executable_and_properties_exist(self) -> bool:
+        starter_exists = isfile(self.starter_path)
+        executable_exists = isfile(self.executable_path)
+        properties_exists = isfile(join(self.server_subfolder, self._BEDROCK_SERVER_PROPERTIES_FILE_NAME))
+        return starter_exists and executable_exists and properties_exists
 
     @property
     def starter_path(self) -> str:
@@ -56,9 +60,32 @@ class SystemUtilities:
         with open(url_path, "w") as file:
             file.write(url)
 
+    def read_server_properties(self) -> dict[str, str]:
+        properties = {}
+        with open(join(self.server_subfolder, self._BEDROCK_SERVER_PROPERTIES_FILE_NAME), "r") as file:
+            for line in file:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                key, value = line.split("=", 1)
+                properties[key] = value.strip()
+        return dict(properties)
+
+    @property
+    def port_number(self) -> int:
+        try:
+            port = int(self.read_server_properties()["server-port"])
+        except TypeError:
+            raise TypeError("Server port in server.properties is not an integer.")
+        except KeyError:
+            raise KeyError("Server port not found in server.properties file.")
+        if port < 1024 or port > 65535:
+            raise ValueError("Server port value in server.properties is out of bounds (too high or low).")
+        return port
+
     @staticmethod
     def list_servers() -> list:
-        return [server for server in listdir(SystemUtilities._DIR) if SystemUtilities(server).executable_exists()]
+        return [server for server in listdir(SystemUtilities._DIR) if SystemUtilities(server).executable_and_properties_exist()]
 
     @staticmethod
     def is_windows() -> bool:

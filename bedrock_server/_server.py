@@ -5,6 +5,7 @@ from subprocess import run
 from shutil import rmtree
 from time import sleep
 from json import dumps
+from mcstatus import BedrockServer as _BedrockServerStatus
 
 
 class BedrockServer(SystemUtilities):
@@ -19,7 +20,10 @@ class BedrockServer(SystemUtilities):
         sleep(1)
         self.execute(f"./{self.starter_path}")
 
-    def stop(self) -> None:
+    def stop(self, force_stop: bool = False) -> None:
+        players_online = _BedrockServerStatus("127.0.0.1", self.port_number).status().players.online
+        if not force_stop and players_online > 0:
+            raise RuntimeError("Cannot stop server while players are online without force stopping.")
         self.execute("stop")
 
     def allowlist_add(self, name: str) -> None:
