@@ -47,7 +47,7 @@ class BedrockServer(SystemUtilities):
         self.execute(f"deop {name}")
 
     def message(self, raw_message: dict) -> None:
-        self.execute(f"tellraw @ {dumps(raw_message)}")
+        self.execute(f"tellraw @a {dumps(raw_message)}")
 
     def execute(self, command: str) -> None:
         session = self._tmux.find_where({"session_name": self.name})
