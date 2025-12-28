@@ -5,6 +5,7 @@ from subprocess import run
 from shutil import rmtree
 from time import sleep
 from json import dumps
+from re import sub
 from mcstatus import BedrockServer as _BedrockServerStatus
 
 
@@ -50,7 +51,11 @@ class BedrockServer(SystemUtilities):
     def demote(self, name: str) -> None:
         self.execute(f"deop {name}")
 
-    def message(self, raw_message: dict) -> None:
+    def message(self, message: str) -> None:
+        message = sub(r"&(?!\s)", "§", message)
+        self.execute(f"say {message}")
+
+    def raw_message(self, raw_message: dict) -> None:
         self.execute(f"tellraw @a {dumps(raw_message)}")
 
     def execute(self, command: str) -> None:
