@@ -10,9 +10,9 @@
 
 ## Requirements
 
-- Ubuntu 22.04 LTS on x86_64
+- Ubuntu LTS on x86_64
 - tmux installed
 
 ## Development
 
-Written in Python 3.13; PIP dependencies can be found in: `requirements.txt`
+Python 3.14; PIP dependencies can be found in: `requirements.txt`
