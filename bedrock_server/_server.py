@@ -23,7 +23,7 @@ class BedrockServer(SystemUtilities):
 
     def start(self) -> None:
         self.download()
-        run(["tmux", "new-session", "-d", "-s", self.name])
+        run(["tmux", "new-session", "-d", "-s", self._tmux_session_name])
         sleep(1)
         self.execute(f"./{self.starter_path}")
 
@@ -62,7 +62,7 @@ class BedrockServer(SystemUtilities):
         self.execute(f"say {message}")
 
     def execute(self, command: str) -> None:
-        session = self._tmux.find_where({"session_name": self.name})
+        session = self._tmux.find_where({"session_name": self._tmux_session_name})
         if session:
             pane = session.attached_window.attached_pane
             pane.send_keys(f"{command}\n", suppress_history=True)
@@ -70,7 +70,7 @@ class BedrockServer(SystemUtilities):
             raise LookupError("No tmux session found for current server.")
 
     def capture(self) -> list[str]:
-        session = self._tmux.find_where({"session_name": self.name})
+        session = self._tmux.find_where({"session_name": self._tmux_session_name})
         if session:
             pane = session.attached_window.attached_pane
             return pane.capture_pane()
