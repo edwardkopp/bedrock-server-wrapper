@@ -28,6 +28,8 @@ class BedrockServer(SystemUtilities):
         self.execute(f"./{self.starter_path}")
 
     def stop(self, force_stop: bool = False) -> None:
+        if not self._tmux.has_session(self._tmux_session_name):
+            return
         players_online = _BedrockServerStatus("127.0.0.1", self.port_number).status().players.online
         if not force_stop and players_online > 0:
             raise RuntimeError("Cannot stop server while players are online without force stopping.")
@@ -77,9 +79,12 @@ class BedrockServer(SystemUtilities):
         else:
             raise LookupError("No tmux session found for current server.")
 
-    @staticmethod
-    def purge(name: str) -> None:
+    def purge(self, name: str) -> None:
+        if self._tmux.has_session(self._tmux_session_name):
+            raise RuntimeError("Cannot purge a running server.")
         rmtree(SystemUtilities(name).folder, ignore_errors=True)
 
     def download(self, force_download: bool = False) -> None:
+        if self._tmux.has_session(self._tmux_session_name):
+            raise RuntimeError("Cannot update a running server.")
         download_and_place(self, force_download)
