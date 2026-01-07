@@ -17,6 +17,10 @@ class BedrockServer(SystemUtilities):
         SystemUtilities.__init__(self, name)
         self._tmux = TmuxServer()
 
+    @property
+    def _tmux_session_name(self) -> str:
+        return f"managed-bedrock-server-{self.name}"
+
     def start(self) -> None:
         self.download()
         run(["tmux", "new-session", "-d", "-s", self.name])
@@ -63,7 +67,7 @@ class BedrockServer(SystemUtilities):
             pane = session.attached_window.attached_pane
             pane.send_keys(f"{command}\n", suppress_history=True)
         else:
-            raise RuntimeError("No tmux session found for current server.")
+            raise LookupError("No tmux session found for current server.")
 
     def capture(self) -> list[str]:
         session = self._tmux.find_where({"session_name": self.name})
@@ -71,7 +75,7 @@ class BedrockServer(SystemUtilities):
             pane = session.attached_window.attached_pane
             return pane.capture_pane()
         else:
-            raise RuntimeError("No tmux session found for current server.")
+            raise LookupError("No tmux session found for current server.")
 
     @staticmethod
     def purge(name: str) -> None:
