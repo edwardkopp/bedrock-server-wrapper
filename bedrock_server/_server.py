@@ -4,7 +4,6 @@ from ._update import download_and_place
 from subprocess import run
 from shutil import rmtree
 from time import sleep
-from json import dumps
 from re import sub
 from mcstatus import BedrockServer as _BedrockServerStatus
 
@@ -58,9 +57,6 @@ class BedrockServer(SystemUtilities):
         message = sub(r"&(?!\s)", "§", message)
         self.execute(f"say {message}")
 
-    def raw_message(self, raw_message: dict) -> None:
-        self.execute(f"tellraw @a {dumps(raw_message)}")
-
     def execute(self, command: str) -> None:
         session = self._tmux.find_where({"session_name": self.name})
         if session:
@@ -69,7 +65,7 @@ class BedrockServer(SystemUtilities):
         else:
             raise RuntimeError("No tmux session found for current server.")
 
-    def capture(self) -> str | list[str]:
+    def capture(self) -> list[str]:
         session = self._tmux.find_where({"session_name": self.name})
         if session:
             pane = session.attached_window.attached_pane
