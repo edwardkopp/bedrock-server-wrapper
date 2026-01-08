@@ -3,11 +3,12 @@ from zipfile import ZipFile
 from io import BytesIO
 from subprocess import run
 from ._system import SystemUtilities
+from fake_useragent import UserAgent
 
 
 _LINKS_URL = "https://net-secondary.web.minecraft-services.net/api/v1.0/download/links"
 _HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+    "User-Agent": UserAgent(platforms=["desktop"]).random
 }
 _EXCLUDE_FILES = [
     "allowlist.json",
