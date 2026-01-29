@@ -2,13 +2,89 @@ from bedrock_server import BedrockServer
 from sys import argv
 
 
-def main() -> None:
-    arguments = argv[1:]
-    if arguments[0].lower() in ("help", "h"):
+def show_help_menu() -> None:
+    print("h - Shows this help menu.")
+    print("l - Shows a list of servers you have.")
+    print("r <server_name> - Starts server with the given name. If it doesn't exist, it will be created.")
+    print("x <server_name> - Stops server with the given name.")
+    print("k <server_name> - Stops server with the given name, forcing it to close.")
+    print("p <server_name> - Purges server with the given name, removing all saved data.")
+    print("m <server_name> <message> - Messages server with the given name. Use \"&\" instead of \"§\" for styling, but grammatical use of \"&\" should appear normal.")
+
+
+def show_server_list() -> None:
+    server_list = BedrockServer.list_servers()
+    if len(server_list) == 0:
+        print("You don't have any servers.")
         return
-    if len(arguments) < 2:
-        print("Not enough arguments.")
-    BedrockServer("default").download()
+    print("Here are the servers you have (names case-insensitive):\n")
+    for server in BedrockServer.list_servers():
+        print(f" * {server.server_name}")
+
+
+def start_server(server_name: str) -> None:
+    server = BedrockServer(server_name)
+    server.start()
+    print(f"Server started. If you need to attach, use the following command: {server.tmux_attach_session_command}")
+
+
+def stop_server(server_name: str, force_stop: bool = False) -> None:
+    try:
+        BedrockServer(server_name).stop(force_stop)
+    except RuntimeError:
+        print("Server cannot be stopped as players are still online. Use \"bsw k\" to force stop the server.")
+    print("Server stopped." if not force_stop else "Server force stopped.")
+
+
+def purge_server(server_name: str) -> None:
+    try:
+        BedrockServer(server_name).purge()
+    except RuntimeError:
+        print("Server cannot be purged while running. Stop it first with \"bsw x\" or \"bsw k\".")
+
+
+def send_message_to_server(server_name: str, args: list[str]) -> None:
+    try:
+        BedrockServer(server_name).message(" ".join(args))
+    except RuntimeError:
+        print("Server cannot broadcast messages when it is not running. Start it first with \"bsw r\".")
+
+
+def main() -> None:
+    if not BedrockServer.check_tmux():
+        print("You need tmux installed to use this program.")
+        return
+    action = argv[1].lower()
+    arguments = argv[2:]
+    if action == "h":
+        show_help_menu()
+        return
+    if action == "l":
+        show_server_list()
+        return
+    if action not in ("r", "x", "k", "p", "m"):
+        print("Command not recognized. Use \"bsw h\" for a list of commands.")
+    server_name = arguments[0]
+    arguments = arguments[1:]
+    try:
+        valid_server_name = BedrockServer.validate_name(server_name)
+    except IndexError:
+        print("Target server name must be provided for this command.")
+        return
+    if not valid_server_name:
+        print(f"Server name invalid. Server names must be alphanumeric and {BedrockServer.MIN_NAME_LEN}-{BedrockServer.MAX_NAME_LEN} characters long.")
+        return
+    match action:
+        case "r":
+            start_server(server_name)
+        case "x":
+            stop_server(server_name)
+        case "k":
+            stop_server(server_name, force_stop=True)
+        case "p":
+            purge_server(server_name)
+        case "m":
+            send_message_to_server(server_name, arguments)
 
 
 if __name__ == "__main__":
