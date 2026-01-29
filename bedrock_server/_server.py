@@ -24,7 +24,10 @@ class BedrockServer(SystemUtilities):
 
     @staticmethod
     def check_screen() -> bool:
-        process = run(["screen", "-V"], capture_output=True, text=True)
+        try:
+            process = run(["screen", "-v"], capture_output=True, text=True)
+        except FileNotFoundError:
+            return False
         prefix = "Screen version "
         return process.stdout[:len(prefix)] == prefix
 
