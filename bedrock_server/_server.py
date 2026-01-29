@@ -52,30 +52,6 @@ class BedrockServer(SystemUtilities):
             sleep(1)
         self._tmux.kill_session(self._tmux_session_name)
 
-    def allowlist_add(self, name: str) -> None:
-        self.execute(f"allowlist add {name}")
-
-    def allowlist_remove(self, name: str) -> None:
-        self.execute(f"allowlist remove {name}")
-
-    def allowlist_list(self) -> None:
-        self.execute("allowlist list")
-
-    def allowlist_reload(self) -> None:
-        self.execute("allowlist reload")
-
-    def permission_list(self) -> None:
-        self.execute("permission list")
-
-    def permission_reload(self) -> None:
-        self.execute("permission reload")
-
-    def promote(self, name: str) -> None:
-        self.execute(f"op {name}")
-
-    def demote(self, name: str) -> None:
-        self.execute(f"deop {name}")
-
     def message(self, message: str) -> None:
         message = sub(r"&(?!\s)", "§", message)
         self.execute(f"say {message}")
@@ -87,13 +63,6 @@ class BedrockServer(SystemUtilities):
         pane = session.attached_window.attached_pane
         pane.send_keys(f"{command}", suppress_history=True)
         return pane
-
-    def capture(self) -> list[str]:
-        session = self._tmux.find_where({"session_name": self._tmux_session_name})
-        if not session:
-            raise LookupError("No tmux session found for current server.")
-        pane = session.attached_window.attached_pane
-        return pane.capture_pane()
 
     def purge(self) -> None:
         if self._tmux.has_session(self._tmux_session_name):
