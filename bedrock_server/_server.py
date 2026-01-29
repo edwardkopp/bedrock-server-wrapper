@@ -33,7 +33,10 @@ class BedrockServer(SystemUtilities):
         players_online = _BedrockServerStatus("127.0.0.1", self.port_number).status().players.online
         if not force_stop and players_online > 0:
             raise RuntimeError("Cannot stop server while players are online without force stopping.")
-        self.execute("stop")
+        pane = self.execute("stop")
+        while pane.display_message("#{pane_dead}", get_text=True) == "0":
+            sleep(1)
+        self._tmux.kill_session(self._tmux_session_name)
 
     def allowlist_add(self, name: str) -> None:
         self.execute(f"allowlist add {name}")
