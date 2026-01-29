@@ -63,26 +63,25 @@ class BedrockServer(SystemUtilities):
         message = sub(r"&(?!\s)", "§", message)
         self.execute(f"say {message}")
 
-    def execute(self, command: str) -> None:
+    def execute(self, command: str) -> Pane:
         session = self._tmux.find_where({"session_name": self._tmux_session_name})
-        if session:
-            pane = session.attached_window.attached_pane
-            pane.send_keys(f"{command}\n", suppress_history=True)
-        else:
+        if not session:
             raise LookupError("No tmux session found for current server.")
+        pane = session.attached_window.attached_pane
+        pane.send_keys(f"{command}", suppress_history=True)
+        return pane
 
     def capture(self) -> list[str]:
         session = self._tmux.find_where({"session_name": self._tmux_session_name})
-        if session:
-            pane = session.attached_window.attached_pane
-            return pane.capture_pane()
-        else:
+        if not session:
             raise LookupError("No tmux session found for current server.")
+        pane = session.attached_window.attached_pane
+        return pane.capture_pane()
 
-    def purge(self, name: str) -> None:
+    def purge(self) -> None:
         if self._tmux.has_session(self._tmux_session_name):
             raise RuntimeError("Cannot purge a running server.")
-        rmtree(SystemUtilities(name).folder, ignore_errors=True)
+        rmtree(self.folder, ignore_errors=True)
 
     def download(self, force_download: bool = False) -> None:
         if self._tmux.has_session(self._tmux_session_name):
