@@ -1,4 +1,5 @@
-from libtmux import Server as TmuxServer
+from libtmux import Server as TmuxServer, Pane
+from libtmux.exc import TmuxCommandNotFound
 from ._system import SystemUtilities
 from ._update import download_and_place
 from subprocess import run
@@ -18,7 +19,11 @@ class BedrockServer(SystemUtilities):
         if not name.isalnum() and not self.MAX_NAME_LENGTH >= len(name) >= self.MIN_NAME_LENGTH:
             raise ValueError(f"Server name must be alphanumeric and {self.MIN_NAME_LENGTH}-{self.MAX_NAME_LENGTH} characters long.")
         SystemUtilities.__init__(self, name)
-        self._tmux = TmuxServer()
+        try:
+            self._tmux = TmuxServer()
+            _ = self._tmux.sessions
+        except TmuxCommandNotFound:
+            raise RuntimeError("tmux is not installed.")
 
     @property
     def _tmux_session_name(self) -> str:
