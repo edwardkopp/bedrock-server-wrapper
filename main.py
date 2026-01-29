@@ -54,7 +54,11 @@ def main() -> None:
     if not BedrockServer.check_tmux():
         print("You need tmux installed to use this program.")
         return
-    action = argv[1].lower()
+    try:
+        action = argv[1].lower()
+    except IndexError:
+        show_help_menu()
+        return
     arguments = argv[2:]
     if action == "h":
         show_help_menu()
