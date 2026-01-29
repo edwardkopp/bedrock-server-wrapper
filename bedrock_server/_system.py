@@ -80,7 +80,7 @@ class SystemUtilities:
         except KeyError:
             raise KeyError("Server port not found in server.properties file.")
         if port < 1024 or port > 65535:
-            raise ValueError("Server port value in server.properties is out of bounds (too high or low).")
+            raise ValueError("Server port value in server.properties is out of range (too high or low).")
         return port
 
     @staticmethod
