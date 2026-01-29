@@ -18,7 +18,7 @@ class BedrockServer(SystemUtilities):
         :raises ValueError: If the server name is invalid.
         """
         server_name = server_name.lower()
-        if not server_name.isalnum() and not self.MAX_NAME_LEN >= len(server_name) >= self.MIN_NAME_LEN:
+        if not BedrockServer.validate_name(server_name):
             raise ValueError(f"Server name must be alphanumeric and {self.MIN_NAME_LEN}-{self.MAX_NAME_LEN} characters long.")
         SystemUtilities.__init__(self, server_name)
 
