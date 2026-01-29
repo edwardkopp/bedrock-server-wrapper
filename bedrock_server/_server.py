@@ -10,10 +10,13 @@ from mcstatus import BedrockServer as _BedrockServerStatus
 
 class BedrockServer(SystemUtilities):
 
+    MIN_NAME_LENGTH = 4
+    MAX_NAME_LENGTH = 32
+
     def __init__(self, name: str = "default") -> None:
         name = name.lower()
-        if name.isalpha() and len(name) <= 4:
-            raise ValueError("Server name must be letters only and more than four characters long.")
+        if not name.isalnum() and not self.MAX_NAME_LENGTH >= len(name) >= self.MIN_NAME_LENGTH:
+            raise ValueError(f"Server name must be alphanumeric and {self.MIN_NAME_LENGTH}-{self.MAX_NAME_LENGTH} characters long.")
         SystemUtilities.__init__(self, name)
         self._tmux = TmuxServer()
 
