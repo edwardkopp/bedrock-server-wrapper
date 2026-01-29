@@ -11,6 +11,6 @@ jobs:
         uses: edwardkopp/run-pyinstaller-script@main
         with:
           python-version: "3.14"
-          architecture: "x86_64"
+          architecture: "x64"
           script: "package.py"
-          artifact-name: "bsw-linux-x86_64"
+          artifact-name: "bsw-linux-x64"
