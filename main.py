@@ -3,13 +3,13 @@ from sys import argv
 
 
 def show_help_menu() -> None:
-    print("h - Shows this help menu.")
-    print("l - Shows a list of servers you have.")
-    print("r <server_name> - Starts server with the given name. If it doesn't exist, it will be created.")
-    print("x <server_name> - Stops server with the given name.")
-    print("k <server_name> - Stops server with the given name, forcing it to close.")
-    print("p <server_name> - Purges server with the given name, removing all saved data.")
-    print("m <server_name> <message> - Messages server with the given name. Use \"&\" instead of \"§\" for styling, but grammatical use of \"&\" should appear normal.")
+    print("bsw h - Shows this help menu.")
+    print("bsw l - Shows a list of servers you have.")
+    print("bsw r <server_name> - Starts server with the given name. If it doesn't exist, it will be created.")
+    print("bsw x <server_name> - Stops server with the given name.")
+    print("bsw k <server_name> - Stops server with the given name, forcing it to close.")
+    print("bsw p <server_name> - Purges server with the given name, removing all saved data.")
+    print("bsw m <server_name> <message> - Messages server with the given name. Use \"&\" instead of \"§\" for styling, but grammatical use of \"&\" should appear normal.")
 
 
 def show_server_list() -> None:
