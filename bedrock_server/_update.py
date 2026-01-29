@@ -22,7 +22,15 @@ _EXCLUDE_DIRS = [
 ]
 
 
-def download_and_place(server_path: SystemUtilities, force_download: bool = False) -> None:
+def download_and_place(server_path: SystemUtilities, overwrite_all: bool = False) -> None:
+    """
+
+    :param server_path: SystemUtilities object.
+        Used to determine where and to download and how to handle updating if server files already exist.
+    :param overwrite_all: Boolean indicating if download should overwrite existing files.
+    :raises TimeoutError: If requests to download servers timeout.
+    :raises ConnectionError: If requests to download servers fail.
+    """
     try:
         response = requests.get(_LINKS_URL, headers=_HEADERS, timeout=10)
         response.raise_for_status()
@@ -34,13 +42,13 @@ def download_and_place(server_path: SystemUtilities, force_download: bool = Fals
     urls_data: list[dict] = urls_data["result"]["links"]
     server_download_url: str | None = None
     for url_data in urls_data:
-        if url_data["downloadType"] == "serverBedrockLinux":  # Use serverBedrockWindows if wanting Windows, but I'd rather use Linux
+        if url_data["downloadType"] == "serverBedrockLinux":
             server_download_url = url_data["downloadUrl"]
     if server_download_url is None:
         raise KeyError("No download URL for Linux server found.")
     if not server_path.executable_and_properties_exist():
-        force_download = True
-    if server_path.last_update_url == server_download_url and not force_download:
+        overwrite_all = True
+    if server_path.last_update_url == server_download_url and not overwrite_all:
         return
     try:
         server_zip_response = requests.get(server_download_url, headers=_HEADERS, timeout=30)
@@ -52,7 +60,7 @@ def download_and_place(server_path: SystemUtilities, force_download: bool = Fals
         raise ConnectionError("Request for server download unsuccessful.")
     server_path.last_update_url = server_download_url
     with ZipFile(BytesIO(server_zip_data)) as server_zip:
-        if force_download:
+        if overwrite_all:
             members = server_zip.namelist()
         else:
             members = [file for file in server_zip.namelist() if file not in _EXCLUDE_FILES]
