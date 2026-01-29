@@ -10,16 +10,12 @@ class SystemUtilities:
     _BEDROCK_SERVER_PROGRAM_NAME = "bedrock_server"
     _BEDROCK_SERVER_PROPERTIES_FILE_NAME = "server.properties"
 
-    def __init__(self, name: str) -> None:
-        self._name = name.lower()
-
-    @property
-    def name(self) -> str:
-        return self._name
+    def __init__(self, server_name: str) -> None:
+        self.server_name = server_name.lower()
 
     @property
     def folder(self) -> str:
-        return join(self._DIR, self._name)
+        return join(self._DIR, self.server_name)
 
     @property
     def server_subfolder(self) -> str:
