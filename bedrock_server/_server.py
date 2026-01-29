@@ -39,7 +39,7 @@ class BedrockServer(SystemUtilities):
         :return: Boolean indicating True if tmux is installed, or False if it is not installed.
         """
         try:
-            _ = has_minimum_version()
+            _ = has_minimum_version(False)
         except TmuxCommandNotFound:
             return False
         return True
