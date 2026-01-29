@@ -2,10 +2,9 @@ from os import listdir
 from os.path import join, isfile
 from pathlib import Path
 from platform import system
-from abc import ABC
 
 
-class SystemUtilities(ABC):
+class SystemUtilities:
 
     _DIR = join(Path.home(), ".bedrock_servers")
     _BEDROCK_SERVER_PROGRAM_NAME = "bedrock_server"
