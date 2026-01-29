@@ -2,17 +2,16 @@ from os import listdir
 from os.path import join, isfile
 from pathlib import Path
 from platform import system
+from abc import ABC
 
 
-class SystemUtilities:
+class SystemUtilities(ABC):
 
     _DIR = join(Path.home(), ".bedrock_servers")
     _BEDROCK_SERVER_PROGRAM_NAME = "bedrock_server"
     _BEDROCK_SERVER_PROPERTIES_FILE_NAME = "server.properties"
 
     def __init__(self, name: str) -> None:
-        if not name.isalnum() or len(name) <= 4:
-            raise ValueError("Server name must be alphanumeric and more than four characters long.")
         self._name = name.lower()
 
     @property
