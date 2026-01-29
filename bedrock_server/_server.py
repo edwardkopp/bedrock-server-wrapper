@@ -1,5 +1,6 @@
 from libtmux import Server as TmuxServer, Pane
 from libtmux.exc import TmuxCommandNotFound
+from libtmux.common import has_minimum_version
 from ._system import SystemUtilities
 from ._update import download_and_place
 from subprocess import run
@@ -37,9 +38,8 @@ class BedrockServer(SystemUtilities):
 
         :return: Boolean indicating True if tmux is installed, or False if it is not installed.
         """
-        server = TmuxServer()
         try:
-            _ = server.sessions
+            _ = has_minimum_version()
         except TmuxCommandNotFound:
             return False
         return True
