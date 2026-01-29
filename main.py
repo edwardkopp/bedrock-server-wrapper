@@ -25,7 +25,7 @@ def show_server_list() -> None:
 def start_server(server_name: str) -> None:
     server = BedrockServer(server_name)
     server.start()
-    print(f"Server started. If you need to attach, use the following command: {server.tmux_attach_session_command}")
+    print(f"Server started. If you need to attach, use the following command: {server.attach_session_command}")
 
 
 def stop_server(server_name: str, force_stop: bool = False) -> None:
@@ -51,8 +51,8 @@ def send_message_to_server(server_name: str, args: list[str]) -> None:
 
 
 def main() -> None:
-    if not BedrockServer.check_tmux():
-        print("You need tmux installed to use this program.")
+    if not BedrockServer.check_screen():
+        print("You need screen installed to use this program.")
         return
     try:
         action = argv[1].lower()

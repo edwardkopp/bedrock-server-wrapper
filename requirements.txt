@@ -1,5 +1,4 @@
 fake-useragent==2.2.0
-libtmux==0.53.0
 mcstatus==12.1.0
 pyinstaller==6.18.0
 requests==2.32.5
