@@ -1,7 +1,6 @@
 from os import listdir
 from os.path import join, isfile
 from pathlib import Path
-from platform import system
 
 
 class SystemUtilities:
@@ -80,7 +79,3 @@ class SystemUtilities:
     @staticmethod
     def list_servers() -> list:
         return [server for server in listdir(SystemUtilities._DIR) if SystemUtilities(server).executable_and_properties_exist()]
-
-    @staticmethod
-    def is_windows() -> bool:
-        return system().lower() == "windows"

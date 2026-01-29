@@ -72,6 +72,5 @@ def download_and_place(server_path: SystemUtilities, overwrite_all: bool = False
             f"cd \"{server_path.server_subfolder}\"\n",
             "LD_LIBRARY_PATH=. ./bedrock_server"
         ])
-    if not server_path.is_windows():
-        run(["chmod", "+x", server_path.executable_path], check=True)
-        run(["chmod", "+x", server_path.starter_path], check=True)
+    run(["chmod", "+x", server_path.executable_path], check=True)
+    run(["chmod", "+x", server_path.starter_path], check=True)
