@@ -1,0 +1,16 @@
+name: Packaging
+
+on:
+  workflow_dispatch:
+
+jobs:
+  linux-build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Create Linux Executable
+        uses: edwardkopp/run-pyinstaller-script@main
+        with:
+          python-version: 3.14
+          architecture: x86_64
+          script: package.py
+          artifact-name: bsw-linux-x86_64
