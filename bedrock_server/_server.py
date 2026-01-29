@@ -39,7 +39,7 @@ class BedrockServer(SystemUtilities):
         self.download()
         run(["tmux", "new-session", "-d", "-s", self._tmux_session_name])
         sleep(1)
-        self.execute(f"./{self.starter_path}")
+        self._execute(f"./{self.starter_path}")
 
     def stop(self, force_stop: bool = False) -> None:
         if not self._tmux.has_session(self._tmux_session_name):
@@ -47,16 +47,16 @@ class BedrockServer(SystemUtilities):
         players_online = _BedrockServerStatus("127.0.0.1", self.port_number).status().players.online
         if not force_stop and players_online > 0:
             raise RuntimeError("Cannot stop server while players are online without force stopping.")
-        pane = self.execute("stop")
+        pane = self._execute("stop")
         while pane.display_message("#{pane_dead}", get_text=True) == "0":
             sleep(1)
         self._tmux.kill_session(self._tmux_session_name)
 
     def message(self, message: str) -> None:
         message = sub(r"&(?!\s)", "§", message)
-        self.execute(f"say {message}")
+        self._execute(f"say {message}")
 
-    def execute(self, command: str) -> Pane:
+    def _execute(self, command: str) -> Pane:
         session = self._tmux.find_where({"session_name": self._tmux_session_name})
         if not session:
             raise LookupError("No tmux session found for current server.")
