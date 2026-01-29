@@ -84,7 +84,7 @@ class BedrockServer(SystemUtilities):
         rmtree(self.folder, ignore_errors=True)
 
     def _execute(self, command: str) -> Pane:
-        session = self._tmux.find_where({"session_name": self._tmux_session_name})
+        session = self._tmux.sessions.get(session_name=self._tmux_session_name)
         if not session:
             raise LookupError("No tmux session found for current server.")
         pane = session.attached_window.attached_pane
