@@ -10,7 +10,7 @@
 
 ## Requirements
 
-Below are the requirements for running the packaged program. If running from source, see the Development section further down for the Python version.
+It is recommended to use the packaged program. Below are the requirements to run it:
 
 - Latest Ubuntu LTS or Latest Debian Stable (other distros will work, but I don't test them)
 - x86_64 CPU
