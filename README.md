@@ -10,7 +10,10 @@
 
 ## Requirements
 
-- Ubuntu LTS on x86_64
+Below are the requirements for running the packaged program. If running from source, see the Development section further down for the Python version.
+
+- Latest Ubuntu LTS or Latest Debian Stable (other distros will work, but I don't test them)
+- x86_64 CPU
 - tmux installed
 
 ## Development
