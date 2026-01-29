@@ -52,10 +52,7 @@ class BedrockServer(SystemUtilities):
 
     def message(self, message: str) -> None:
         message = sub(r"&(?!\s)", "§", message)
-        try:
-            self._execute(f"say {message}")
-        except LookupError:
-            raise RuntimeError("Cannot send message when the server is not running.")
+        self._execute(f"say {message}")
 
     def purge(self) -> None:
         rmtree(self.folder, ignore_errors=True)
