@@ -15,6 +15,12 @@ class BedrockServer(SystemUtilities):
     MAX_NAME_LENGTH = 32
 
     def __init__(self, name: str = "default") -> None:
+        """
+        :param name: Case-insensitive name for the server.
+            Must be alphanumeric and between MIN_NAME_LENGTH and MAX_NAME_LENGTH characters long.
+        :raises ValueError: If the server name is invalid.
+        :raises RuntimeError: If tmux is not installed.
+        """
         name = name.lower()
         if not name.isalnum() and not self.MAX_NAME_LENGTH >= len(name) >= self.MIN_NAME_LENGTH:
             raise ValueError(f"Server name must be alphanumeric and {self.MIN_NAME_LENGTH}-{self.MAX_NAME_LENGTH} characters long.")
