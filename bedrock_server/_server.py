@@ -1,6 +1,6 @@
 from ._system import SystemUtilities
 from ._update import download_and_place
-from subprocess import Popen
+from subprocess import run
 from shutil import rmtree
 from re import sub
 from mcstatus import BedrockServer as _BedrockServerStatus
@@ -24,13 +24,7 @@ class BedrockServer(SystemUtilities):
 
     @staticmethod
     def check_screen() -> bool:
-        try:
-            process = Popen(["screen", "-v"], shell=True, text=True)
-            process.wait()
-        except FileNotFoundError:
-            return False
-        prefix = "Screen version "
-        return str(process.stdout)[:len(prefix)] == prefix
+        return len(run(["which", "screen"], capture_output=True).stdout) > 0
 
     @staticmethod
     def validate_name(server_name: str) -> bool:
