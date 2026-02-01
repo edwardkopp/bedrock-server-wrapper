@@ -40,7 +40,7 @@ class BedrockServer(SystemUtilities):
 
     def start(self) -> None:
         self._download()
-        run(["screen", "-dmS", self._session_name, f"bash \"{self.starter_path}\""])
+        run(["screen", "-dmS", self._session_name, "bash", str(self.starter_path)])
 
     def stop(self, force_stop: bool = False) -> None:
         players_online = _BedrockServerStatus("127.0.0.1", self.port_number).status().players.online
