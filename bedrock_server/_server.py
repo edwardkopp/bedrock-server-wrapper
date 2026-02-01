@@ -40,7 +40,7 @@ class BedrockServer(SystemUtilities):
 
     def start(self) -> None:
         self._download()
-        Popen(["screen", "-dmS", self._session_name, f"\"./{self.starter_path}\""], shell=True).wait()
+        run(["screen", "-dmS", self._session_name, f"\"./{self.starter_path}\""])
 
     def stop(self, force_stop: bool = False) -> None:
         players_online = _BedrockServerStatus("127.0.0.1", self.port_number).status().players.online
@@ -56,7 +56,7 @@ class BedrockServer(SystemUtilities):
         rmtree(self.folder, ignore_errors=True)
 
     def _execute(self, command: str) -> None:
-        Popen(["screen", "-S", self._session_name, "-p", 0, "-X", "stuff", command + "\n"], shell=True).wait()
+        run(["screen", "-S", self._session_name, "-p", 0, "-X", "stuff", command + "\n"])
 
     def _download(self, force_download: bool = False) -> None:
         download_and_place(self, force_download)
