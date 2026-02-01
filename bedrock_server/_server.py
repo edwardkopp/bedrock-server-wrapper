@@ -1,6 +1,6 @@
 from ._system import SystemUtilities
 from ._update import download_and_place
-from subprocess import run
+from subprocess import Popen
 from shutil import rmtree
 from re import sub
 from mcstatus import BedrockServer as _BedrockServerStatus
@@ -25,11 +25,12 @@ class BedrockServer(SystemUtilities):
     @staticmethod
     def check_screen() -> bool:
         try:
-            process = run(["screen", "-v"], capture_output=True, text=True)
+            process = Popen(["screen", "-v"], shell=True, text=True)
+            process.wait()
         except FileNotFoundError:
             return False
         prefix = "Screen version "
-        return process.stdout[:len(prefix)] == prefix
+        return str(process.stdout)[:len(prefix)] == prefix
 
     @staticmethod
     def validate_name(server_name: str) -> bool:
@@ -45,7 +46,7 @@ class BedrockServer(SystemUtilities):
 
     def start(self) -> None:
         self._download()
-        run(["screen", "-dmS", self._session_name, f"./{self.starter_path}"])
+        Popen(["screen", "-dmS", self._session_name, f"\"./{self.starter_path}\""], shell=True).wait()
 
     def stop(self, force_stop: bool = False) -> None:
         players_online = _BedrockServerStatus("127.0.0.1", self.port_number).status().players.online
@@ -61,7 +62,7 @@ class BedrockServer(SystemUtilities):
         rmtree(self.folder, ignore_errors=True)
 
     def _execute(self, command: str) -> None:
-        run(["screen", "-S", self._session_name, "-p", 0, "-X", "stuff", command + "\n"])
+        Popen(["screen", "-S", self._session_name, "-p", 0, "-X", "stuff", command + "\n"], shell=True).wait()
 
     def _download(self, force_download: bool = False) -> None:
         download_and_place(self, force_download)
