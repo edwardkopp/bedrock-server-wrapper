@@ -19,7 +19,7 @@ def show_server_list() -> None:
         return
     print("Here are the servers you have (names case-insensitive):\n")
     for server in BedrockServer.list_servers():
-        print(f" * {server.server_name}")
+        print(f" * {server}")
 
 
 def start_server(server_name: str) -> None:

@@ -77,5 +77,5 @@ class SystemUtilities:
         return port
 
     @staticmethod
-    def list_servers() -> list:
+    def list_servers() -> list[str]:
         return [server for server in listdir(SystemUtilities._DIR) if SystemUtilities(server).executable_and_properties_exist()]
