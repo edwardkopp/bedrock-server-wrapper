@@ -24,8 +24,13 @@ def show_server_list() -> None:
 
 def start_server(server_name: str) -> None:
     server = BedrockServer(server_name)
-    server.start()
-    print(f"Server started. If you need to attach, use the following command: {server.attach_session_command}")
+    try:
+        server.start()
+    except RuntimeError:
+        print("Server already running.")
+    else:
+        print(f"Server started.")
+    print(f"If needed, attach to it with \"{server.attach_session_command}\".")
 
 
 def stop_server(server_name: str, force_stop: bool = False) -> None:

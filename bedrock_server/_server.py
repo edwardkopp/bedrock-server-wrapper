@@ -42,24 +42,35 @@ class BedrockServer(SystemUtilities):
         return f"screen -r {self._session_name}"
 
     def start(self) -> None:
-        self._download()
+        try:
+            self._download()
+        except RuntimeError:
+            raise RuntimeError("Server is already running.")
         run(["screen", "-dmS", self._session_name, "bash", str(self.starter_path)])
 
     def stop(self, force_stop: bool = False) -> None:
+        if not self._check_running():
+            return
         players_online = _BedrockServerStatus("127.0.0.1", self.port_number).status().players.online
         if not force_stop and players_online > 0:
             raise RuntimeError("Cannot stop server while players are online without force stopping.")
         self._execute("stop")
 
     def message(self, message: str) -> None:
+        if not self._check_running():
+            raise RuntimeError("Cannot send message while server is not running.")
         message = sub(r"&(?!\s)", "§", message)
         self._execute(f"say {message}")
 
     def purge(self) -> None:
+        if self._check_running():
+            raise RuntimeError("Cannot purge server while it is running.")
         rmtree(self.folder, ignore_errors=True)
 
     def _execute(self, command: str) -> None:
         run(["screen", "-S", self._session_name, "-p", 0, "-X", "stuff", f"\"{command.replace("\"", "\\\"")}\n\""])
 
     def _download(self, force_download: bool = False) -> None:
+        if self._check_running():
+            raise RuntimeError("Cannot download server while it is running.")
         download_and_place(self, force_download)
