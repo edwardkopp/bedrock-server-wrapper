@@ -26,6 +26,9 @@ class BedrockServer(SystemUtilities):
     def check_screen() -> bool:
         return len(run(["which", "screen"], capture_output=True).stdout) > 0
 
+    def _check_running(self) -> bool:
+        return self._session_name in run(["screen", "-ls"], capture_output=True, text=True).stdout
+
     @staticmethod
     def validate_name(server_name: str) -> bool:
         return server_name.isalnum() and BedrockServer.MIN_NAME_LEN <= len(server_name) <= BedrockServer.MAX_NAME_LEN
