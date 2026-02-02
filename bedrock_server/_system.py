@@ -64,14 +64,31 @@ class SystemUtilities:
                 properties[key] = value.strip()
         return dict(properties)
 
+    def get_server_property(self, key: str) -> str | None:
+        return self.read_server_properties().get(key, None)
+
     @property
     def port_number(self) -> int:
+        port = self.get_server_property("server-port")
+        if port is None:
+            raise KeyError("Server port not found in server.properties file.")
         try:
-            port = int(self.read_server_properties()["server-port"])
+            port = int(port)
         except TypeError:
             raise TypeError("Server port in server.properties is not an integer.")
-        except KeyError:
+        if port < 1024 or port > 65535:
+            raise ValueError("Server port value in server.properties is out of range (too high or low).")
+        return port
+
+    @property
+    def port_number_ipv6(self) -> int:
+        port = self.get_server_property("server-portv6")
+        if port is None:
             raise KeyError("Server port not found in server.properties file.")
+        try:
+            port = int(port)
+        except TypeError:
+            raise TypeError("Server port in server.properties is not an integer.")
         if port < 1024 or port > 65535:
             raise ValueError("Server port value in server.properties is out of range (too high or low).")
         return port
