@@ -26,8 +26,12 @@ class BedrockServer(SystemUtilities):
     def check_screen() -> bool:
         return len(run(["which", "screen"], capture_output=True).stdout) > 0
 
+    @staticmethod
+    def _active_screen_sessions_display() -> str:
+        return run(["screen", "-ls"], capture_output=True, text=True).stdout
+
     def _check_running(self) -> bool:
-        return self._session_name in run(["screen", "-ls"], capture_output=True, text=True).stdout
+        return self._session_name in self._active_screen_sessions_display()
 
     @staticmethod
     def validate_name(server_name: str) -> bool:
@@ -107,3 +111,8 @@ class BedrockServer(SystemUtilities):
 
     def _get_player_count(self) -> int:
         return _BedrockServerStatus("127.0.0.1", self.port_number).status().players.online
+
+    @staticmethod
+    def list_online_servers() -> list[str]:
+        active_sessions_display = BedrockServer._active_screen_sessions_display()
+        return [server for server in SystemUtilities.list_servers() if server in active_sessions_display]
