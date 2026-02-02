@@ -8,11 +8,15 @@ app = Typer(add_completion=False, rich_markup_mode=None)
 @app.command(name="list", help="Shows a list of servers you have.")
 def list_servers() -> None:
     server_list = BedrockServer.list_servers()
+    online_server_list = BedrockServer.list_online_servers()
     if len(server_list) == 0:
         print("You don't have any servers.")
         return
     print("Here are the servers you have (names case-insensitive):")
-    for server in BedrockServer.list_servers():
+    for server in server_list:
+        if server in online_server_list:
+            print(f" -> {server} (running) | {BedrockServer(server).attach_session_command} ")
+            continue
         print(f" -> {server}")
 
 
