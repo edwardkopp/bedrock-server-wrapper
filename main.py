@@ -1,8 +1,9 @@
 from bedrock_server import BedrockServer
 from typer import Typer, Argument, Option
+from rich import print
 
 
-app = Typer()
+app = Typer(add_completion=False)
 
 
 @app.command(name="list", help="Shows a list of servers you have.")
@@ -17,9 +18,9 @@ def list_servers() -> None:
 
 
 @app.command(help="Creates a new server.")
-def new(name: str) -> None:
+def new(server_name: str) -> None:
     try:
-        BedrockServer(name).new()
+        BedrockServer(server_name).new()
     except FileExistsError:
         print("Server already exists.")
         return
@@ -27,8 +28,8 @@ def new(name: str) -> None:
 
 
 @app.command(help="Starts specified server.")
-def start(name: str) -> None:
-    server = BedrockServer(name)
+def start(server_name: str) -> None:
+    server = BedrockServer(server_name)
     try:
         server.start()
     except RuntimeError:
@@ -42,9 +43,9 @@ def start(name: str) -> None:
 
 
 @app.command(help="Stops specified server.")
-def stop(name: str, force: bool = False) -> None:
+def stop(server_name: str, force: bool = False) -> None:
     try:
-        BedrockServer(name).stop(force)
+        BedrockServer(server_name).stop(force)
     except RuntimeError:
         print("Server cannot be stopped as players are still online. Use \"bsw k\" to force stop the server.")
         return
@@ -52,29 +53,29 @@ def stop(name: str, force: bool = False) -> None:
 
 
 @app.command(help="Purges specified server, removing all saved data.")
-def purge(name: str) -> None:
+def purge(server_name: str) -> None:
     try:
-        BedrockServer(name).purge()
+        BedrockServer(server_name).purge()
     except RuntimeError:
         print("Server cannot be purged while running.")
 
 
 @app.command(help="Messages specified server. Use \"&\" instead of \"§\" for styling, but grammatical use of \"&\" should appear normal.")
-def chat(name: str, message: list[str] = Argument(...)) -> None:
+def chat(server_name: str, message: list[str] = Argument(...)) -> None:
     try:
-        BedrockServer(name).message(" ".join(message))
+        BedrockServer(server_name).message(" ".join(message))
     except RuntimeError:
         print("Server cannot broadcast messages when it is not running.")
 
 
 @app.command(help="Creates backup of the specified server.")
 def backup(
-        name: str = Argument(help="Name of the server."),
+        server_name: str = Argument(help="Name of the server."),
         force: bool = False,
         enforce_cooldown_minutes: int = Option(1, min=1, max=1440, help="Minimum time to enforce between backups."),
         max_backups: int = Option(100, min=1, max=100, help="Maximum number of backups to keep.")
 ) -> None:
-    BedrockServer(name).backup(force_backup=force, enforce_cooldown_minutes=enforce_cooldown_minutes, backup_limit=max_backups)
+    BedrockServer(server_name).backup(force_backup=force, enforce_cooldown_minutes=enforce_cooldown_minutes, backup_limit=max_backups)
 
 
 if __name__ == "__main__":
