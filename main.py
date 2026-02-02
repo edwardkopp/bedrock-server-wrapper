@@ -1,103 +1,78 @@
 from bedrock_server import BedrockServer
-from sys import argv
+from typer import Typer, Argument, Option
 
 
-def show_help_menu() -> None:
-    print("bsw h - Shows this help menu.")
-    print("bsw l - Shows a list of servers you have.")
-    print("bsw r <server_name> - Starts specified server. If it doesn't exist, it will be created.")
-    print("bsw x <server_name> - Stops specified server, but cancels if players are still online.")
-    print("bsw k <server_name> - Stops specified server, forcing it to close.")
-    print("bsw p <server_name> - Purges specified server, removing all saved data.")
-    print("bsw m <server_name> <message> - Messages specified server. Use \"&\" instead of \"§\" for styling, but grammatical use of \"&\" should appear normal.")
+app = Typer()
 
 
-def show_server_list() -> None:
+@app.command(name="list", help="Shows a list of servers you have.")
+def list_servers() -> None:
     server_list = BedrockServer.list_servers()
     if len(server_list) == 0:
         print("You don't have any servers.")
         return
-    print("Here are the servers you have (names case-insensitive):\n")
+    print("Here are the servers you have (names case-insensitive):")
     for server in BedrockServer.list_servers():
-        print(f" * {server}")
+        print(f" -> {server}")
 
 
-def start_server(server_name: str) -> None:
-    server = BedrockServer(server_name)
+@app.command(help="Creates a new server.")
+def new(name: str) -> None:
+    try:
+        BedrockServer(name).new()
+    except FileExistsError:
+        print("Server already exists.")
+    print("Server created.")
+
+
+@app.command(help="Starts specified server.")
+def start(name: str) -> None:
+    server = BedrockServer(name)
     try:
         server.start()
     except RuntimeError:
         print("Server already running.")
+    except FileNotFoundError:
+        print("Server does not exist.")
     else:
         print(f"Server started.")
     print(f"If needed, attach to it with \"{server.attach_session_command}\".")
 
 
-def stop_server(server_name: str, force_stop: bool = False) -> None:
+@app.command(help="Stops specified server.")
+def stop(name: str, force: bool = False) -> None:
     try:
-        BedrockServer(server_name).stop(force_stop)
+        BedrockServer(name).stop(force)
     except RuntimeError:
         print("Server cannot be stopped as players are still online. Use \"bsw k\" to force stop the server.")
-    print("Server stopped." if not force_stop else "Server force stopped.")
+    print("Server stopped." if not force else "Server force stopped.")
 
 
-def purge_server(server_name: str) -> None:
+@app.command(help="Purges specified server, removing all saved data.")
+def purge(name: str) -> None:
     try:
-        BedrockServer(server_name).purge()
+        BedrockServer(name).purge()
     except RuntimeError:
-        print("Server cannot be purged while running. Stop it first with \"bsw x\" or \"bsw k\".")
+        print("Server cannot be purged while running.")
 
 
-def send_message_to_server(server_name: str, args: list[str]) -> None:
+@app.command(help="Messages specified server. Use \"&\" instead of \"§\" for styling, but grammatical use of \"&\" should appear normal.")
+def chat(name: str, message: list[str] = Argument(...)) -> None:
     try:
-        BedrockServer(server_name).message(" ".join(args))
+        BedrockServer(name).message(" ".join(message))
     except RuntimeError:
         print("Server cannot broadcast messages when it is not running. Start it first with \"bsw r\".")
 
 
-def main() -> None:
-    if not BedrockServer.check_screen():
-        print("You need screen installed to use this program.")
-        return
-    try:
-        action = argv[1].lower()
-    except IndexError:
-        show_help_menu()
-        return
-    arguments = argv[2:]
-    if action == "h":
-        show_help_menu()
-        return
-    if action == "l":
-        show_server_list()
-        return
-    if action not in ("r", "x", "k", "p", "m"):
-        print("Command not recognized. Use \"bsw h\" for a list of commands.")
-    server_name = arguments[0]
-    arguments = arguments[1:]
-    try:
-        valid_server_name = BedrockServer.validate_name(server_name)
-    except IndexError:
-        print("Target server name must be provided for this command.")
-        return
-    if not valid_server_name:
-        print(f"Server name invalid. Server names must be alphanumeric and {BedrockServer.MIN_NAME_LEN}-{BedrockServer.MAX_NAME_LEN} characters long.")
-        return
-    if len(arguments) and action != "m":
-        print("Too many arguments for this command.")
-        return
-    match action:
-        case "r":
-            start_server(server_name)
-        case "x":
-            stop_server(server_name)
-        case "k":
-            stop_server(server_name, force_stop=True)
-        case "p":
-            purge_server(server_name)
-        case "m":
-            send_message_to_server(server_name, arguments)
+@app.command(help="Creates backup of the specified server.")
+def backup(
+        name: str = Argument(help="Name of the server."),
+        force: bool = False,
+        enforce_cooldown_minutes: int = Option(1, min=1, max=1440, help="Minimum time to enforce between backups."),
+        max_backups: int = Option(100, min=1, max=100, help="Maximum number of backups to keep.")
+) -> None:
+    BedrockServer(name).backup(force_backup=force, enforce_cooldown_minutes=enforce_cooldown_minutes, backup_limit=max_backups)
 
 
 if __name__ == "__main__":
-    main()
+    app()
