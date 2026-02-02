@@ -82,8 +82,8 @@ def chat(
 def backup(
         server_name: str = Argument(help="Name of the server."),
         force: bool = False,
-        cooldown: int = Option(1, min=1, max=720, help="If the previous backup was less than this many minutes ago, the backup will be skipped."),
-        limit: int = Option(100, min=1, max=100, help="Maximum number of backups to keep.")
+        cooldown: int = Option(60, min=0, max=720, help="If the previous backup was less than this many minutes ago, the backup will be skipped."),
+        limit: int = Option(30, min=1, max=100, help="Maximum number of backups to keep.")
 ) -> None:
     try:
         BedrockServer(server_name).backup(enforce_cooldown_minutes=cooldown, backup_limit=limit, force_backup=force)
