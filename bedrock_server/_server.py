@@ -73,8 +73,7 @@ class BedrockServer(SystemUtilities):
             raise RuntimeError("Cannot stop server while players are online without force stopping.")
         self._execute("stop")
 
-    def backup(self, force_backup: bool = False, enforce_cooldown_minutes: int = 1, backup_limit = 100) -> None:
-        enforce_cooldown_minutes = max(enforce_cooldown_minutes, 0)
+    def backup(self, enforce_cooldown_minutes: int, backup_limit: int, force_backup: bool = False) -> None:
         last_backup = self.recent_backup_age_minutes()
         if enforce_cooldown_minutes and last_backup is not None and not force_backup:
             if last_backup < enforce_cooldown_minutes:
