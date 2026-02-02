@@ -98,7 +98,7 @@ class BedrockServer(SystemUtilities):
         rmtree(self.folder, ignore_errors=True)
 
     def _execute(self, command: str) -> None:
-        run(["screen", "-S", self._session_name, "-p", 0, "-X", "stuff", f"\"{command.replace("\"", "\\\"")}\n\""])
+        run(["screen", "-S", self._session_name, "-p", "0", "-X", "stuff", f"\"{command.replace("\"", "\\\"")}\n\""])
 
     def _download(self, force_download: bool = False) -> None:
         if self._check_running():
