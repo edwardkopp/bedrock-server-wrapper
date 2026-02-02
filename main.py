@@ -1,8 +1,8 @@
 from bedrock_server import BedrockServer
-from typer import Typer, Argument, Option
+import typer as ty
 
 
-app = Typer(add_completion=False)
+app = ty.Typer(add_completion=False)
 
 
 @app.command(name="list", help="Shows a list of servers you have.")
@@ -69,7 +69,7 @@ def purge(server_name: str) -> None:
 @app.command(help="Sends message to chat of the specified server.")
 def chat(
         server_name: str,
-        message: list[str] = Argument(..., help="Use \"&\" instead of \"§\" for styling, but grammatical use of \"&\" should appear normal.")) -> None:
+        message: list[str] = ty.Argument(..., help="Use \"&\" instead of \"§\" for styling, but grammatical use of \"&\" should appear normal.")) -> None:
     try:
         BedrockServer(server_name).message(" ".join(message))
     except RuntimeError:
@@ -80,10 +80,10 @@ def chat(
 
 @app.command(help="Creates backup of the specified server.")
 def backup(
-        server_name: str = Argument(help="Name of the server."),
+        server_name: str = ty.Argument(help="Name of the server."),
         force: bool = False,
-        cooldown: int = Option(60, min=0, max=720, help="If the previous backup was less than this many minutes ago, the backup will be skipped."),
-        limit: int = Option(30, min=1, max=100, help="Maximum number of backups to keep.")
+        cooldown: int = ty.Option(60, min=0, max=720, help="If the previous backup was less than this many minutes ago, the backup will be skipped."),
+        limit: int = ty.Option(30, min=1, max=100, help="Maximum number of backups to keep.")
 ) -> None:
     try:
         BedrockServer(server_name).backup(enforce_cooldown_minutes=cooldown, backup_limit=limit, force_backup=force)
