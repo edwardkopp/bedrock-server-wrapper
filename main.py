@@ -74,9 +74,9 @@ def backup(
         server_name: str = Argument(help="Name of the server."),
         force: bool = False,
         enforce_cooldown_minutes: int = Option(1, min=1, max=1440, help="Minimum time to enforce between backups."),
-        max_backups: int = Option(100, min=1, max=100, help="Maximum number of backups to keep.")
+        limit: int = Option(100, min=1, max=100, help="Maximum number of backups to keep.")
 ) -> None:
-    BedrockServer(server_name).backup(force_backup=force, enforce_cooldown_minutes=enforce_cooldown_minutes, backup_limit=max_backups)
+    BedrockServer(server_name).backup(force_backup=force, enforce_cooldown_minutes=enforce_cooldown_minutes, backup_limit=limit)
 
 
 if __name__ == "__main__":
