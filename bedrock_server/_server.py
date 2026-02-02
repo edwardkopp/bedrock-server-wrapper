@@ -41,7 +41,14 @@ class BedrockServer(SystemUtilities):
     def attach_session_command(self) -> str:
         return f"screen -r {self._session_name}"
 
+    def new(self) -> None:
+        if self.server_name in self.list_servers():
+            raise FileExistsError("Server already exists.")
+        download_and_place(self)
+
     def start(self) -> None:
+        if self.server_name not in self.list_servers():
+            raise FileNotFoundError("Server does not exist.")
         try:
             self._download()
         except RuntimeError:
