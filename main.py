@@ -15,9 +15,11 @@ def list_servers() -> None:
     print("Here are the servers you have (names case-insensitive):")
     for server in server_list:
         if server in online_server_list:
-            print(f" -> {server} (running) | {BedrockServer(server).attach_session_command} ")
+            print(f" -> {server} (running: use \"{BedrockServer(server).attach_session_command}\" to attach)")
             continue
         print(f" -> {server}")
+    if len(online_server_list):
+        print("To detach from a server's screen session, the default is Ctrl+A then D.")
 
 
 @app.command(help="Creates a new server.")
@@ -46,6 +48,7 @@ def start(server_name: str) -> None:
     else:
         print(f"Server started.")
     print(f"If needed, attach to it with \"{server.attach_session_command}\".")
+    print("To detach from a server's screen session, the default is Ctrl+A then D.")
 
 
 @app.command(help="Stops the specified server.")
