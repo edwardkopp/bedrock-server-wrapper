@@ -22,6 +22,7 @@ def new(name: str) -> None:
         BedrockServer(name).new()
     except FileExistsError:
         print("Server already exists.")
+        return
     print("Server created.")
 
 
@@ -34,6 +35,7 @@ def start(name: str) -> None:
         print("Server already running.")
     except FileNotFoundError:
         print("Server does not exist.")
+        return
     else:
         print(f"Server started.")
     print(f"If needed, attach to it with \"{server.attach_session_command}\".")
@@ -45,6 +47,7 @@ def stop(name: str, force: bool = False) -> None:
         BedrockServer(name).stop(force)
     except RuntimeError:
         print("Server cannot be stopped as players are still online. Use \"bsw k\" to force stop the server.")
+        return
     print("Server stopped." if not force else "Server force stopped.")
 
 
@@ -61,7 +64,7 @@ def chat(name: str, message: list[str] = Argument(...)) -> None:
     try:
         BedrockServer(name).message(" ".join(message))
     except RuntimeError:
-        print("Server cannot broadcast messages when it is not running. Start it first with \"bsw r\".")
+        print("Server cannot broadcast messages when it is not running.")
 
 
 @app.command(help="Creates backup of the specified server.")
