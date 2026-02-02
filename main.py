@@ -53,7 +53,7 @@ def stop(server_name: str, force: bool = False) -> None:
     try:
         BedrockServer(server_name).stop(force)
     except RuntimeError:
-        print("Server cannot be stopped as players are still online. Use \"bsw k\" to force stop the server.")
+        print("Server cannot be stopped as players are still online. Use the force option to do it anyway.")
         return
     print("Server stopped." if not force else "Server force stopped.")
 
@@ -74,6 +74,8 @@ def chat(
         BedrockServer(server_name).message(" ".join(message))
     except RuntimeError:
         print("Server cannot broadcast messages when it is not running.")
+    else:
+        print("Message sent.")
 
 
 @app.command(help="Creates backup of the specified server.")
@@ -83,7 +85,14 @@ def backup(
         cooldown: int = Option(1, min=1, max=720, help="If the previous backup was less than this many minutes ago, the backup will be skipped."),
         limit: int = Option(100, min=1, max=100, help="Maximum number of backups to keep.")
 ) -> None:
-    BedrockServer(server_name).backup(force_backup=force, enforce_cooldown_minutes=cooldown, backup_limit=limit)
+    try:
+        BedrockServer(server_name).backup(enforce_cooldown_minutes=cooldown, backup_limit=limit, force_backup=force)
+    except FileExistsError:
+        print("Previous backup is too recent. No backup created.")
+    except RuntimeError:
+        print("Server cannot be backed up as players are still online. Use the force option to do it anyway.")
+    else:
+        print("Backup created.")
 
 
 if __name__ == "__main__":
