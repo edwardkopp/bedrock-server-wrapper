@@ -49,7 +49,7 @@ class BedrockServer(SystemUtilities):
         for server_name in self.list_servers():
             if server_name == self.server_name:
                 continue
-            other_server = BedrockServer(server_name)
+            other_server = SystemUtilities(server_name)
             other_server_ports = (other_server.port_number, other_server.port_number_ipv6)
             if self.port_number in other_server_ports or self.port_number_ipv6 in other_server_ports:
                 raise OSError("Server ports conflict with another server.")
