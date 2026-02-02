@@ -1,6 +1,5 @@
 from bedrock_server import BedrockServer
 from typer import Typer, Argument, Option
-from rich import print
 
 
 app = Typer(add_completion=False)
