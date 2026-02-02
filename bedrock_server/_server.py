@@ -46,6 +46,13 @@ class BedrockServer(SystemUtilities):
             self._download()
         except RuntimeError:
             raise RuntimeError("Server is already running.")
+        for server_name in self.list_servers():
+            if server_name == self.server_name:
+                continue
+            other_server = BedrockServer(server_name)
+            other_server_ports = (other_server.port_number, other_server.port_number_ipv6)
+            if self.port_number in other_server_ports or self.port_number_ipv6 in other_server_ports:
+                raise OSError("Server ports conflict with another server.")
         run(["screen", "-dmS", self._session_name, "bash", str(self.starter_path)])
 
     def stop(self, force_stop: bool = False) -> None:
