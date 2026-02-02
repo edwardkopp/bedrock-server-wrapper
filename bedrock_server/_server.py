@@ -24,10 +24,10 @@ class BedrockServer(SystemUtilities):
 
     @staticmethod
     def check_screen() -> bool:
-        return len(run(["which", "screen"], capture_output=True).stdout) > 0
+        return len(run(["which screen"], capture_output=True).stdout) > 0
 
     def _check_running(self) -> bool:
-        return self._session_name in run(["screen", "-ls"], capture_output=True, text=True).stdout
+        return self._session_name in run(["screen -ls"], capture_output=True, text=True).stdout
 
     @staticmethod
     def validate_name(server_name: str) -> bool:
@@ -60,7 +60,7 @@ class BedrockServer(SystemUtilities):
             other_server_ports = (other_server.port_number, other_server.port_number_ipv6)
             if self.port_number in other_server_ports or self.port_number_ipv6 in other_server_ports:
                 raise OSError("Server ports conflict with another server.")
-        run(["screen", "-dmS", self._session_name, "bash", str(self.starter_path)])
+        run(["screen -dmS", self._session_name, "bash", str(self.starter_path)])
 
     def stop(self, force_stop: bool = False) -> None:
         if not self._check_running():
@@ -98,7 +98,7 @@ class BedrockServer(SystemUtilities):
         rmtree(self.folder, ignore_errors=True)
 
     def _execute(self, command: str) -> None:
-        run(["screen", "-S", self._session_name, "-p", 0, "-X", "stuff", f"\"{command.replace("\"", "\\\"")}\n\""])
+        run(["screen -S", self._session_name, "-p 0 -X stuff", f"\"{command.replace("\"", "\\\"")}\n\""])
 
     def _download(self, force_download: bool = False) -> None:
         if self._check_running():
