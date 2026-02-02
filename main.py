@@ -83,6 +83,9 @@ def main() -> None:
     if not valid_server_name:
         print(f"Server name invalid. Server names must be alphanumeric and {BedrockServer.MIN_NAME_LEN}-{BedrockServer.MAX_NAME_LEN} characters long.")
         return
+    if len(arguments) and action != "m":
+        print("Too many arguments for this command.")
+        return
     match action:
         case "r":
             start_server(server_name)
