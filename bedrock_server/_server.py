@@ -77,7 +77,7 @@ class BedrockServer(SystemUtilities):
         enforce_cooldown_minutes = max(enforce_cooldown_minutes, 0)
         last_backup = self.recent_backup_age_minutes()
         if enforce_cooldown_minutes and last_backup is not None and not force_backup:
-            if last_backup > enforce_cooldown_minutes:
+            if last_backup < enforce_cooldown_minutes:
                 raise FileExistsError("Previous backup is too recent.")
         stop_and_restart = self._check_running()
         if stop_and_restart:
