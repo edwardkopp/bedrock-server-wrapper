@@ -1,6 +1,8 @@
 from os import listdir
 from os.path import join, isfile
 from pathlib import Path
+from datetime import datetime
+from shutil import make_archive
 
 
 class SystemUtilities:
@@ -92,6 +94,43 @@ class SystemUtilities:
         if port < 1024 or port > 65535:
             raise ValueError("Server port value in server.properties is out of range (too high or low).")
         return port
+
+    def list_backups(self) -> list[str]:
+        backup_directory = Path(self.backups_subfolder)
+        backup_directory.mkdir(parents=True, exist_ok=True)
+        existing_backups = list(backup_directory.glob("*.zip"))
+        return [str(backup.relative_to(backup_directory)) for backup in existing_backups]
+
+    def limit_backups(self, limit: int) -> None:
+        backups = self.list_backups()
+        if len(backups) <= limit:
+            return
+        backups.sort(reverse=True)
+        for backup in backups[limit:]:
+            Path(join(self.backups_subfolder, backup)).unlink()
+
+    def recent_backup_age_minutes(self) -> int | None:
+        backups = self.list_backups()
+        current_time = datetime.now()
+        if not len(backups):
+            return None
+        backups.sort()
+        while True:
+            most_recent_backup = backups[-1].replace(".zip", "")
+            backups = backups[:-1]
+            if not len(backups):
+                break
+            try:
+                most_recent_backup_date = datetime.strptime(most_recent_backup, "%Y-%m-%d_%H-%M-%S")
+            except ValueError:
+                continue
+            return max(1, int(round((current_time - most_recent_backup_date).total_seconds() /  60)))
+
+    def do_backup(self) -> None:
+        backup_name = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+        backup_path = join(self.backups_subfolder, backup_name)
+        Path(self.backups_subfolder).mkdir(parents=True, exist_ok=True)
+        make_archive(backup_path, "zip", self.server_subfolder)
 
     @staticmethod
     def list_servers() -> list[str]:
