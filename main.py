@@ -60,10 +60,15 @@ def stop(server_name: str, force: bool = False) -> None:
 
 @app.command(help="Purges the specified server, removing all saved data.")
 def purge(server_name: str) -> None:
+    if not ty.confirm("Are you sure you want to purge the server? This cannot be undone."):
+        print("Operation canceled.")
+        return
     try:
         BedrockServer(server_name).purge()
     except RuntimeError:
         print("Server cannot be purged while running.")
+        return
+    print("Server purged.")
 
 
 @app.command(help="Sends message to chat of the specified server.")
