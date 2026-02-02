@@ -22,10 +22,10 @@ _EXCLUDE_DIRS = [
 ]
 
 
-def download_and_place(server_path: SystemUtilities, overwrite_all: bool = False) -> None:
+def download_and_place(server_utilities_object: SystemUtilities, overwrite_all: bool = False) -> None:
     """
 
-    :param server_path: SystemUtilities object.
+    :param server_utilities_object: SystemUtilities object.
         Used to determine where and to download and how to handle updating if server files already exist.
     :param overwrite_all: Boolean indicating if download should overwrite existing files.
     :raises TimeoutError: If requests to download servers timeout.
@@ -46,9 +46,9 @@ def download_and_place(server_path: SystemUtilities, overwrite_all: bool = False
             server_download_url = url_data["downloadUrl"]
     if server_download_url is None:
         raise KeyError("No download URL for Linux server found.")
-    if not server_path.executable_and_properties_exist():
+    if not server_utilities_object.executable_and_properties_exist():
         overwrite_all = True
-    if server_path.last_update_url == server_download_url and not overwrite_all:
+    if server_utilities_object.last_update_url == server_download_url and not overwrite_all:
         return
     try:
         server_zip_response = requests.get(server_download_url, headers=_HEADERS, timeout=30)
@@ -58,19 +58,19 @@ def download_and_place(server_path: SystemUtilities, overwrite_all: bool = False
         raise TimeoutError("Request for server download timed out.")
     except requests.HTTPError:
         raise ConnectionError("Request for server download unsuccessful.")
-    server_path.last_update_url = server_download_url
+    server_utilities_object.last_update_url = server_download_url
     with ZipFile(BytesIO(server_zip_data)) as server_zip:
         if overwrite_all:
             members = server_zip.namelist()
         else:
             members = [file for file in server_zip.namelist() if file not in _EXCLUDE_FILES]
             members = [file for file in members for folder in _EXCLUDE_DIRS if not file.startswith(folder)]
-        server_zip.extractall(server_path.server_subfolder, members=members)
-    with open(server_path.starter_path, "w") as starter_file:
+        server_zip.extractall(server_utilities_object.server_subfolder, members=members)
+    with open(server_utilities_object.starter_path, "w") as starter_file:
         starter_file.writelines([
             "#!/usr/bin/env bash\n",
-            f"cd \"{server_path.server_subfolder}\"\n",
+            f"cd \"{server_utilities_object.server_subfolder}\"\n",
             "LD_LIBRARY_PATH=. ./bedrock_server"
         ])
-    run(["chmod", "+x", server_path.executable_path], check=True)
-    run(["chmod", "+x", server_path.starter_path], check=True)
+    run(["chmod", "+x", server_utilities_object.executable_path], check=True)
+    run(["chmod", "+x", server_utilities_object.starter_path], check=True)
