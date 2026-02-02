@@ -36,6 +36,9 @@ def start(server_name: str) -> None:
     except FileNotFoundError:
         print("Server does not exist.")
         return
+    except OSError:
+        print("Ports conflict with other servers. Change the ports in the \"server.properties\" and try again.")
+        return
     else:
         print(f"Server started.")
     print(f"If needed, attach to it with \"{server.attach_session_command}\".")
