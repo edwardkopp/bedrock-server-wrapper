@@ -2,7 +2,7 @@ from bedrock_server import BedrockServer
 from typer import Typer, Argument, Option
 
 
-app = Typer(add_completion=False, rich_markup_mode=None)
+app = Typer(add_completion=False)
 
 
 @app.command(name="list", help="Shows a list of servers you have.")
