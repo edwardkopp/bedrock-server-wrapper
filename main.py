@@ -2,7 +2,7 @@ from bedrock_server import BedrockServer
 from typer import Typer, Argument, Option
 
 
-app = Typer(add_completion=False)
+app = Typer(add_completion=False, pretty_exceptions_enable=False, pretty_exceptions_short=False)
 
 
 @app.command(name="list", help="Shows a list of servers you have.")
@@ -26,7 +26,7 @@ def new(server_name: str) -> None:
     print("Server created.")
 
 
-@app.command(help="Starts specified server.")
+@app.command(help="Starts the specified server.")
 def start(server_name: str) -> None:
     server = BedrockServer(server_name)
     try:
@@ -41,7 +41,7 @@ def start(server_name: str) -> None:
     print(f"If needed, attach to it with \"{server.attach_session_command}\".")
 
 
-@app.command(help="Stops specified server.")
+@app.command(help="Stops the specified server.")
 def stop(server_name: str, force: bool = False) -> None:
     try:
         BedrockServer(server_name).stop(force)
@@ -51,7 +51,7 @@ def stop(server_name: str, force: bool = False) -> None:
     print("Server stopped." if not force else "Server force stopped.")
 
 
-@app.command(help="Purges specified server, removing all saved data.")
+@app.command(help="Purges the specified server, removing all saved data.")
 def purge(server_name: str) -> None:
     try:
         BedrockServer(server_name).purge()
@@ -59,8 +59,10 @@ def purge(server_name: str) -> None:
         print("Server cannot be purged while running.")
 
 
-@app.command(help="Messages specified server. Use \"&\" instead of \"§\" for styling, but grammatical use of \"&\" should appear normal.")
-def chat(server_name: str, message: list[str] = Argument(...)) -> None:
+@app.command(help="Sends message to chat of the specified server.")
+def chat(
+        server_name: str,
+        message: list[str] = Argument(..., help="Use \"&\" instead of \"§\" for styling, but grammatical use of \"&\" should appear normal.")) -> None:
     try:
         BedrockServer(server_name).message(" ".join(message))
     except RuntimeError:
