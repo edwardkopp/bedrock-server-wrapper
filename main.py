@@ -110,7 +110,7 @@ def purge(server_name: str) -> None:
 @app.command(help="Sends message to chat of the specified server.")
 def chat(
         server_name: str,
-        message: list[str] = ty.Argument(..., help="Use \"&\" instead of \"§\" for styling, but grammatical use of \"&\" should appear normal.")) -> None:
+        message: str = ty.Argument(help="Use \"&\" instead of \"§\" for styling, but grammatical use of \"&\" should appear normal.")) -> None:
     if server_name not in BedrockServer.list_servers():
         print("Server does not exist.")
         return
@@ -118,7 +118,7 @@ def chat(
         print("Server is not running.")
         return
     try:
-        BedrockServer(server_name).message(" ".join(message))
+        BedrockServer(server_name).message(message)
     except RuntimeError:
         print("Server cannot broadcast messages when it is not running.")
     else:
