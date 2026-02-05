@@ -28,11 +28,32 @@ def list_servers() -> None:
 @app.command(help="Creates a new server.")
 def new(server_name: str) -> None:
     try:
+        server_name = server_name.lower()
         BedrockServer(server_name).new()
     except FileExistsError:
         print("Server already exists.")
         return
-    print("Server created.")
+    except ValueError:
+        print("Server name is invalid.")
+        return
+    print("Server created. ")
+
+
+@app.command(help="Shows the directory of where the server is stored, or where backups are stored.")
+def where(server_name: str, backups: bool = False) -> None:
+    try:
+        server = BedrockServer(server_name)
+    except FileNotFoundError:
+        print("Server does not exist.")
+        return
+    except ValueError:
+        print("Server name is invalid.")
+        return
+    if backups:
+        print(server.backups_subfolder)
+        return
+    print(server.server_subfolder)
+
 
 
 @app.command(help="Starts the specified server.")
@@ -44,6 +65,9 @@ def start(server_name: str) -> None:
         print("Server already running.")
     except FileNotFoundError:
         print("Server does not exist.")
+        return
+    except ValueError:
+        print("Server name is invalid.")
         return
     except OSError:
         print("Ports conflict. Change the ports in the \"server.properties\" and try again.")
@@ -58,6 +82,9 @@ def start(server_name: str) -> None:
 def stop(server_name: str, force: bool = False) -> None:
     try:
         BedrockServer(server_name).stop(force)
+    except ValueError:
+        print("Server name is invalid.")
+        return
     except RuntimeError:
         print("Server cannot be stopped as players are still online. Use the force option to do it anyway.")
         return
@@ -66,6 +93,9 @@ def stop(server_name: str, force: bool = False) -> None:
 
 @app.command(help="Purges the specified server, removing all saved data.")
 def purge(server_name: str) -> None:
+    if server_name not in BedrockServer.list_servers():
+        print("Server does not exist.")
+        return
     if not ty.confirm("Are you sure you want to purge the server? This cannot be undone."):
         print("Operation canceled.")
         return
@@ -81,6 +111,12 @@ def purge(server_name: str) -> None:
 def chat(
         server_name: str,
         message: list[str] = ty.Argument(..., help="Use \"&\" instead of \"§\" for styling, but grammatical use of \"&\" should appear normal.")) -> None:
+    if server_name not in BedrockServer.list_servers():
+        print("Server does not exist.")
+        return
+    elif server_name not in BedrockServer.list_online_servers():
+        print("Server is not running.")
+        return
     try:
         BedrockServer(server_name).message(" ".join(message))
     except RuntimeError:
@@ -96,6 +132,9 @@ def backup(
         cooldown: int = ty.Option(60, min=0, max=720, help="If the previous backup was less than this many minutes ago, the backup will be skipped."),
         limit: int = ty.Option(30, min=1, max=100, help="Maximum number of backups to keep.")
 ) -> None:
+    if server_name not in BedrockServer.list_servers():
+        print("Server does not exist.")
+        return
     try:
         BedrockServer(server_name).backup(enforce_cooldown_minutes=cooldown, backup_limit=limit, force_backup=force)
     except FileExistsError:
