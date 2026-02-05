@@ -14,10 +14,11 @@ def list_servers() -> None:
         return
     print("Here are the servers you have (names case-insensitive):")
     for server in server_list:
+        server_object = BedrockServer(server)
+        print(f" -> Name: {server}")
+        print(f"    Ports: {server_object.port_number} (IPv4), {server_object.port_number_ipv6} (IPv6)")
         if server in online_server_list:
-            print(f" -> {server} (running: use \"{BedrockServer(server).attach_session_command}\" to attach)")
-            continue
-        print(f" -> {server}")
+            print(f"    Running: {server_object.get_player_count()} online. Use \"{server_object.attach_session_command}\" to attach.")
     if len(online_server_list):
         print("To detach from a server's screen session, the default is Ctrl+A then D.")
 

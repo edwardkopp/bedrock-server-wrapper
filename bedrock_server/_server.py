@@ -69,7 +69,7 @@ class BedrockServer(SystemUtilities):
     def stop(self, force_stop: bool = False) -> None:
         if not self._check_running():
             return
-        if not force_stop and self._get_player_count():
+        if not force_stop and self.get_player_count():
             raise RuntimeError("Cannot stop server while players are online without force stopping.")
         self._execute("stop")
 
@@ -108,7 +108,7 @@ class BedrockServer(SystemUtilities):
             raise RuntimeError("Cannot download server while it is running.")
         download_and_place(self, force_download)
 
-    def _get_player_count(self) -> int:
+    def get_player_count(self) -> int:
         return _BedrockServerStatus("127.0.0.1", self.port_number).status().players.online
 
     @staticmethod
