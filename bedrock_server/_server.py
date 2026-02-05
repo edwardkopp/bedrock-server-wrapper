@@ -1,5 +1,4 @@
 from ._system import SystemUtilities
-from ._update import download_and_place, check_for_update
 from subprocess import run
 from shutil import rmtree
 from re import sub
@@ -45,13 +44,10 @@ class BedrockServer(SystemUtilities):
     def attach_session_command(self) -> str:
         return f"screen -r {self._session_name}"
 
-    def update_available(self) -> bool:
-        return check_for_update(self)
-
     def new(self) -> None:
         if self.server_name in self.list_servers():
             raise FileExistsError("Server already exists.")
-        download_and_place(self)
+        self.download_and_update()
 
     def start(self) -> None:
         if self.server_name not in self.list_servers():
@@ -111,7 +107,7 @@ class BedrockServer(SystemUtilities):
     def _download(self, force_download: bool = False) -> None:
         if self._check_running():
             raise RuntimeError("Cannot download server while it is running.")
-        download_and_place(self, force_download)
+        self.download_and_update(force_download)
 
     def get_player_count(self) -> int:
         return _BedrockServerStatus("127.0.0.1", self.port_number).status().players.online

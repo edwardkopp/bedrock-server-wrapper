@@ -189,7 +189,7 @@ class SystemUtilities:
     def check_for_update(self) -> bool:
         return self.last_update_url == self._get_download_url()
 
-    def download_and_place(self, overwrite_all: bool = False) -> None:
+    def download_and_update(self, overwrite_all: bool = False) -> None:
         """
 
             Used to determine where and to download and how to handle updating if server files already exist.
