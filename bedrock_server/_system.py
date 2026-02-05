@@ -7,7 +7,7 @@ from shutil import make_archive
 
 class SystemUtilities:
 
-    _DIR = join(Path.home(), ".bedrock_servers")
+    _DIR = join(Path.home(), "BSW")
     _BEDROCK_SERVER_PROGRAM_NAME = "bedrock_server"
     _BEDROCK_SERVER_PROPERTIES_FILE_NAME = "server.properties"
 
