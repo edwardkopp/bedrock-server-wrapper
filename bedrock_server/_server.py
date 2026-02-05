@@ -1,5 +1,5 @@
 from ._system import SystemUtilities
-from ._update import download_and_place
+from ._update import download_and_place, check_for_update
 from subprocess import run
 from shutil import rmtree
 from re import sub
@@ -44,6 +44,9 @@ class BedrockServer(SystemUtilities):
     @property
     def attach_session_command(self) -> str:
         return f"screen -r {self._session_name}"
+
+    def update_available(self) -> bool:
+        return check_for_update(self)
 
     def new(self) -> None:
         if self.server_name in self.list_servers():

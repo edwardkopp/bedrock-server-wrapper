@@ -22,15 +22,7 @@ _EXCLUDE_DIRS = [
 ]
 
 
-def download_and_place(server_utilities_object: SystemUtilities, overwrite_all: bool = False) -> None:
-    """
-
-    :param server_utilities_object: SystemUtilities object.
-        Used to determine where and to download and how to handle updating if server files already exist.
-    :param overwrite_all: Boolean indicating if download should overwrite existing files.
-    :raises TimeoutError: If requests to download servers timeout.
-    :raises ConnectionError: If requests to download servers fail.
-    """
+def _get_download_url() -> str:
     try:
         response = requests.get(_LINKS_URL, headers=_HEADERS, timeout=10)
         response.raise_for_status()
@@ -40,25 +32,40 @@ def download_and_place(server_utilities_object: SystemUtilities, overwrite_all: 
     except requests.HTTPError:
         raise ConnectionError("Request for download links unsuccessful.")
     urls_data: list[dict] = urls_data["result"]["links"]
-    server_download_url: str | None = None
+    download_url: str | None = None
     for url_data in urls_data:
         if url_data["downloadType"] == "serverBedrockLinux":
-            server_download_url = url_data["downloadUrl"]
-    if server_download_url is None:
+            download_url = url_data["downloadUrl"]
+    if download_url is None:
         raise KeyError("No download URL for Linux server found.")
+    return download_url
+
+
+def check_for_update(server_utilities_object: SystemUtilities) -> bool:
+    return server_utilities_object.last_update_url == _get_download_url()
+
+
+def download_and_place(server_utilities_object: SystemUtilities, overwrite_all: bool = False) -> None:
+    """
+
+    :param server_utilities_object: SystemUtilities object.
+        Used to determine where and to download and how to handle updating if server files already exist.
+    :param overwrite_all: Boolean indicating if download should overwrite existing files.
+    """
+    download_url = _get_download_url()
     if not server_utilities_object.executable_and_properties_exist():
         overwrite_all = True
-    if server_utilities_object.last_update_url == server_download_url and not overwrite_all:
+    if server_utilities_object.last_update_url == download_url and not overwrite_all:
         return
     try:
-        server_zip_response = requests.get(server_download_url, headers=_HEADERS, timeout=30)
+        server_zip_response = requests.get(download_url, headers=_HEADERS, timeout=30)
         server_zip_response.raise_for_status()
         server_zip_data = server_zip_response.content
     except requests.Timeout:
         raise TimeoutError("Request for server download timed out.")
     except requests.HTTPError:
         raise ConnectionError("Request for server download unsuccessful.")
-    server_utilities_object.last_update_url = server_download_url
+    server_utilities_object.last_update_url = download_url
     with ZipFile(BytesIO(server_zip_data)) as server_zip:
         if overwrite_all:
             members = server_zip.namelist()
