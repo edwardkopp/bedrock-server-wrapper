@@ -40,8 +40,8 @@ def new(server_name: str) -> None:
     print(f"Configuration files can be found at: {BedrockServer(server_name).server_subfolder}")
 
 
-@app.command(help="Shows the directory of where the server is stored, or where backups are stored.")
-def where(server_name: str, backups: bool = False) -> None:
+@app.command(help="Shows path for the directory where server files are stored.")
+def where(server_name: str, backups: bool = ty.Option(False, help="Shows path for backups directory instead of server files.")) -> None:
     try:
         server = BedrockServer(server_name)
     except FileNotFoundError:
