@@ -55,7 +55,6 @@ def where(server_name: str, backups: bool = False) -> None:
     print(server.server_subfolder)
 
 
-
 @app.command(help="Starts the specified server.")
 def start(server_name: str) -> None:
     server = BedrockServer(server_name)
