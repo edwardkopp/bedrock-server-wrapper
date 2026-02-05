@@ -36,7 +36,8 @@ def new(server_name: str) -> None:
     except ValueError:
         print("Server name is invalid.")
         return
-    print("Server created. ")
+    print(f"Server created.")
+    print(f"Configuration files can be found at: {BedrockServer(server_name).server_subfolder}")
 
 
 @app.command(help="Shows the directory of where the server is stored, or where backups are stored.")
