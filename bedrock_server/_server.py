@@ -1,7 +1,9 @@
-from ._system import SystemUtilities
+from datetime import datetime
+from shutil import make_archive
 from subprocess import run
 from shutil import rmtree
 from re import sub
+from pathlib import Path
 from mcstatus import BedrockServer as _BedrockServerStatus
 import requests
 from zipfile import ZipFile
@@ -9,7 +11,7 @@ from io import BytesIO
 from fake_useragent import UserAgent
 
 
-class BedrockServer(SystemUtilities):
+class BedrockServer:
 
     # Server name length limits
     MIN_NAME_LEN = 4
@@ -33,16 +35,59 @@ class BedrockServer(SystemUtilities):
         "config"
     ]
 
-    def __init__(self, server_name: str) -> None:
+    # File paths and names
+    _DIR = Path.home().joinpath("BSW")
+    _BEDROCK_SERVER_PROGRAM_NAME = "bedrock_server"
+    _BEDROCK_SERVER_PROPERTIES_FILE_NAME = "server.properties"
+    _DIR.mkdir(parents=True, exist_ok=True)
+
+    # Empty dictionary to load server.properties into when ready
+    _SERVER_PROPERTIES: dict[str, str] = {}
+
+    # Constructor blocker to allow methods to validate server_name differently
+    _CONSTRUCTOR_BLOCKER = object()
+
+    def __init__(self, server_name: str, token: object) -> None:
         """
         :param server_name: Case-insensitive name for the server.
             Must be alphanumeric and between MIN_NAME_LENGTH and MAX_NAME_LENGTH characters long.
         :raises ValueError: If the server name is invalid.
         """
-        server_name = server_name.lower()
+        if token is not self._CONSTRUCTOR_BLOCKER:
+            raise RuntimeError("Use BedrockServer.create or BedrockServer.load to get a BedrockServer instance.")
+        self.server_name = server_name.lower()
+
+    @classmethod
+    def create(cls, server_name: str) -> "BedrockServer | str":
         if not BedrockServer.validate_name(server_name):
-            raise ValueError(f"Server name must be alphanumeric and {self.MIN_NAME_LEN}-{self.MAX_NAME_LEN} characters long.")
-        SystemUtilities.__init__(self, server_name)
+            return "Server name is invalid."
+        elif server_name in cls.list_servers():
+            return "Server already exists."
+        new_server = cls(server_name, cls._CONSTRUCTOR_BLOCKER)
+        new_server.download_and_update()
+        return new_server
+
+    @classmethod
+    def load(cls, server_name: str) -> "BedrockServer | str":
+        if not server_name in cls.list_servers():
+            return "Server does not exist."
+        return cls(server_name, cls._CONSTRUCTOR_BLOCKER)
+
+    @property
+    def folder(self) -> Path:
+        return self._DIR.joinpath(self.server_name)
+
+    @property
+    def server_subfolder(self) -> Path:
+        return self.folder.joinpath("server")
+
+    @property
+    def backups_subfolder(self) -> Path:
+        return self.folder.joinpath("backups")
+
+    @property
+    def executable_path(self) -> Path:
+        return self.server_subfolder.joinpath(self._BEDROCK_SERVER_PROGRAM_NAME)
 
     @staticmethod
     def check_screen() -> bool:
@@ -52,7 +97,7 @@ class BedrockServer(SystemUtilities):
     def _active_screen_sessions_display() -> str:
         return run(["screen", "-ls"], capture_output=True, text=True).stdout
 
-    def _check_running(self) -> bool:
+    def is_running(self) -> bool:
         return self._session_name in self._active_screen_sessions_display()
 
     @staticmethod
@@ -67,14 +112,7 @@ class BedrockServer(SystemUtilities):
     def attach_session_command(self) -> str:
         return f"screen -r {self._session_name}"
 
-    def new(self) -> None:
-        if self.server_name in self.list_servers():
-            raise FileExistsError("Server already exists.")
-        self.download_and_update()
-
     def start(self) -> None:
-        if self.server_name not in self.list_servers():
-            raise FileNotFoundError("Server does not exist.")
         try:
             self._download()
         except RuntimeError:
@@ -82,7 +120,7 @@ class BedrockServer(SystemUtilities):
         for server_name in self.list_servers():
             if server_name == self.server_name:
                 continue
-            other_server = SystemUtilities(server_name)
+            other_server = self.__class__(server_name, self._CONSTRUCTOR_BLOCKER)
             other_server_ports = (other_server.port_number, other_server.port_number_ipv6)
             if self.port_number in other_server_ports or self.port_number_ipv6 in other_server_ports:
                 raise OSError("Server ports conflict with another server.")
@@ -91,7 +129,7 @@ class BedrockServer(SystemUtilities):
         run(["screen", "-dmS", self._session_name, "bash", str(self.starter_path)])
 
     def stop(self, force_stop: bool = False) -> None:
-        if not self._check_running():
+        if not self.is_running():
             return
         if not force_stop and self.get_player_count():
             raise RuntimeError("Cannot stop server while players are online without force stopping.")
@@ -102,7 +140,7 @@ class BedrockServer(SystemUtilities):
         if enforce_cooldown_minutes and last_backup is not None and not force_backup:
             if last_backup < enforce_cooldown_minutes:
                 raise FileExistsError("Previous backup is too recent.")
-        stop_and_restart = self._check_running()
+        stop_and_restart = self.is_running()
         if stop_and_restart:
             try:
                 self.stop(force_stop=force_backup)
@@ -114,31 +152,31 @@ class BedrockServer(SystemUtilities):
         self.limit_backups(backup_limit)
 
     def message(self, message: str) -> None:
-        if not self._check_running():
-            raise RuntimeError("Cannot send message while server is not running.")
+        if not self.is_running():
+            return
         message = sub(r"&(?!\s)", "§", message)
         self._execute(f"say {message}")
 
     def purge(self) -> None:
-        if self._check_running():
-            raise RuntimeError("Cannot purge server while it is running.")
+        if self.is_running():
+            return
         rmtree(self.folder, ignore_errors=True)
 
     def _execute(self, command: str) -> None:
         run(["screen", "-S", self._session_name, "-p", "0", "-X", "stuff", f"{command}\\n"])
 
     def _download(self) -> None:
-        if self._check_running():
+        if self.is_running():
             raise RuntimeError("Cannot download server while it is running.")
         self.download_and_update()
 
     def get_player_count(self) -> int:
         return _BedrockServerStatus("127.0.0.1", self.port_number).status().players.online
 
-    @staticmethod
-    def list_online_servers() -> list[str]:
+    @classmethod
+    def list_online_servers(cls) -> list[str]:
         active_sessions_display = BedrockServer._active_screen_sessions_display()
-        return [server for server in SystemUtilities.list_servers() if server in active_sessions_display]
+        return [server for server in cls.list_servers() if server in active_sessions_display]
 
     def check_for_update(self) -> bool:
         return self.last_update_url == self._get_download_url()
@@ -191,3 +229,116 @@ class BedrockServer(SystemUtilities):
             ])
         run(["chmod", "+x", self.executable_path], check=True)
         run(["chmod", "+x", self.starter_path], check=True)
+
+
+    def get_server_property(self, key: str) -> str | None:
+        self._load_server_properties()
+        return self._SERVER_PROPERTIES.get(key, None)
+
+    @property
+    def lan_visibility(self) -> bool:
+        return self.get_server_property("enable-lan-visibility") == "true"
+
+    @property
+    def port_number(self) -> int:
+        port = self.get_server_property("server-port")
+        if port is None:
+            raise KeyError("Server port not found in server.properties file.")
+        try:
+            port = int(port)
+        except TypeError:
+            raise TypeError("Server port in server.properties is not an integer.")
+        if port < 1024 or port > 65535:
+            raise ValueError("Server port value in server.properties is out of range (too high or low).")
+        return port
+
+    @property
+    def port_number_ipv6(self) -> int:
+        port = self.get_server_property("server-portv6")
+        if port is None:
+            raise KeyError("Server port not found in server.properties file.")
+        try:
+            port = int(port)
+        except TypeError:
+            raise TypeError("Server port in server.properties is not an integer.")
+        if port < 1024 or port > 65535:
+            raise ValueError("Server port value in server.properties is out of range (too high or low).")
+        return port
+
+    def list_backups(self) -> list[str]:
+        backup_directory = Path(self.backups_subfolder)
+        backup_directory.mkdir(parents=True, exist_ok=True)
+        existing_backups = list(backup_directory.glob("*.zip"))
+        return [str(backup.relative_to(backup_directory)) for backup in existing_backups]
+
+    def limit_backups(self, limit: int) -> None:
+        backups = self.list_backups()
+        if len(backups) <= limit:
+            return
+        backups.sort(reverse=True)
+        for backup in backups[limit:]:
+            self.backups_subfolder.joinpath(backup).unlink()
+
+    def recent_backup_age_minutes(self) -> int | None:
+        backups = self.list_backups()
+        current_time = datetime.now()
+        if not len(backups):
+            return None
+        backups.sort()
+        while True:
+            most_recent_backup = backups[-1].replace(".zip", "")
+            backups = backups[:-1]
+            if not len(backups):
+                break
+            try:
+                most_recent_backup_date = datetime.strptime(most_recent_backup, "%Y-%m-%d_%H-%M-%S")
+            except ValueError:
+                continue
+            return max(1, int(round((current_time - most_recent_backup_date).total_seconds() /  60)))
+
+    def do_backup(self) -> None:
+        backup_name = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+        backup_path = self.backups_subfolder.joinpath(backup_name)
+        Path(self.backups_subfolder).mkdir(parents=True, exist_ok=True)
+        make_archive(str(backup_path), "zip", self.server_subfolder)
+
+    @classmethod
+    def list_servers(cls) -> list[str]:
+        return [server.name for server in cls._DIR.iterdir() if cls(server.name, cls._CONSTRUCTOR_BLOCKER).executable_and_properties_exist()]
+
+    def _load_server_properties(self) -> None:
+        with open(self.server_subfolder.joinpath(self._BEDROCK_SERVER_PROPERTIES_FILE_NAME), "r") as file:
+            for line in file:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                key, value = line.split("=", 1)
+                self._SERVER_PROPERTIES[key] = value.strip()
+
+    def executable_and_properties_exist(self) -> bool:
+        starter_exists = self.starter_path.is_file()
+        executable_exists = self.executable_path.is_file()
+        properties_exists = self.server_subfolder.joinpath(self._BEDROCK_SERVER_PROPERTIES_FILE_NAME).is_file()
+        return starter_exists and executable_exists and properties_exists
+
+    @property
+    def starter_path(self) -> Path:
+        return self.server_subfolder.joinpath("starter.sh")
+
+    @property
+    def _last_update_url_file_path(self) -> Path:
+        return self.folder.joinpath("last_update_url.txt")
+
+    @property
+    def last_update_url(self) -> str:
+        try:
+            with open(self._last_update_url_file_path, "r") as file:
+                return file.read()
+        except FileNotFoundError:
+            return ""
+
+    @last_update_url.setter
+    def last_update_url(self, url: str) -> None:
+        self._last_update_url_file_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(self._last_update_url_file_path, "w") as file:
+            file.write(url)

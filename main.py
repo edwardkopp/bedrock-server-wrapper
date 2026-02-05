@@ -14,7 +14,7 @@ def list_servers() -> None:
         return
     print("Here are the servers you have (names case-insensitive):\n")
     for server in server_list:
-        server_object = BedrockServer(server)
+        server_object = BedrockServer.load(server)
         print(f" -> Name: {server}")
         print(f"    Ports: {server_object.port_number} (IPv4), {server_object.port_number_ipv6} (IPv6)")
         if server in online_server_list:
@@ -27,48 +27,36 @@ def list_servers() -> None:
 
 @app.command(help="Creates a new server.")
 def new(server_name: str) -> None:
-    try:
-        server_name = server_name.lower()
-        BedrockServer(server_name).new()
-    except FileExistsError:
-        print("Server already exists.")
-        return
-    except ValueError:
-        print("Server name is invalid.")
+    response = BedrockServer.create(server_name)
+    if isinstance(response, str):
+        print(response)
         return
     print(f"Server created.")
-    print(f"Configuration files can be found at: {BedrockServer(server_name).server_subfolder}")
+    print(f"Configuration files can be found at: {response.server_subfolder}")
 
 
 @app.command(help="Shows path for the directory where server files are stored.")
 def where(server_name: str, backups: bool = ty.Option(False, help="Shows path for backups directory instead of server files.")) -> None:
-    try:
-        server = BedrockServer(server_name)
-    except FileNotFoundError:
-        print("Server does not exist.")
-        return
-    except ValueError:
-        print("Server name is invalid.")
+    response = BedrockServer.load(server_name)
+    if isinstance(response, str):
+        print(response)
         return
     if backups:
-        print(server.backups_subfolder)
+        print(response.backups_subfolder)
         return
-    print(server.server_subfolder)
+    print(response.server_subfolder)
 
 
 @app.command(help="Starts the specified server.")
 def start(server_name: str) -> None:
-    server = BedrockServer(server_name)
+    response = BedrockServer.load(server_name)
+    if isinstance(response, str):
+        print(response)
+        return
     try:
-        server.start()
+        response.start()
     except RuntimeError:
         print("Server already running.")
-    except FileNotFoundError:
-        print("Server does not exist.")
-        return
-    except ValueError:
-        print("Server name is invalid.")
-        return
     except OSError:
         print("Potential ports conflict. Please check the following in server.properties:")
         print(" -> Ensure that no other server is using the same ports.")
@@ -76,17 +64,18 @@ def start(server_name: str) -> None:
         return
     else:
         print(f"Server started.")
-    print(f"If needed, attach to it with \"{server.attach_session_command}\".")
+    print(f"If needed, attach to it with \"{response.attach_session_command}\".")
     print("To detach from a server's screen session, the default is Ctrl+A then D.")
 
 
 @app.command(help="Stops the specified server.")
 def stop(server_name: str, force: bool = False) -> None:
-    try:
-        BedrockServer(server_name).stop(force)
-    except ValueError:
-        print("Server name is invalid.")
+    response = BedrockServer.load(server_name)
+    if isinstance(response, str):
+        print(response)
         return
+    try:
+        response.stop(force)
     except RuntimeError:
         print("Server cannot be stopped as players are still online. Use the force option to do it anyway.")
         return
@@ -95,20 +84,17 @@ def stop(server_name: str, force: bool = False) -> None:
 
 @app.command(help="Purges the specified server, removing all saved data.")
 def purge(server_name: str) -> None:
-    if server_name not in BedrockServer.list_servers():
-        print("Server does not exist.")
+    response = BedrockServer.load(server_name)
+    if isinstance(response, str):
+        print(response)
         return
-    if server_name in BedrockServer.list_online_servers():
+    if response.is_running():
         print("Server cannot be purged while running.")
         return
     if not ty.confirm("Are you sure you want to purge the server? This cannot be undone."):
         print("Operation canceled.")
         return
-    try:
-        BedrockServer(server_name).purge()
-    except RuntimeError:
-        print("Server cannot be purged while running.")
-        return
+    response.purge()
     print("Server purged.")
 
 
@@ -116,32 +102,30 @@ def purge(server_name: str) -> None:
 def chat(
         server_name: str,
         message: str = ty.Argument(help="Use \"&\" instead of \"§\" for styling, but grammatical use of \"&\" should appear normal.")) -> None:
-    if server_name not in BedrockServer.list_servers():
-        print("Server does not exist.")
+    response = BedrockServer.load(server_name)
+    if isinstance(response, str):
+        print(response)
         return
-    elif server_name not in BedrockServer.list_online_servers():
+    if not response.is_running():
         print("Server is not running.")
         return
-    try:
-        BedrockServer(server_name).message(message)
-    except RuntimeError:
-        print("Server cannot broadcast messages when it is not running.")
-    else:
-        print("Message sent.")
+    response.message(message)
+    print("Message sent.")
 
 
 @app.command(help="Creates backup of the specified server.")
 def backup(
-        server_name: str = ty.Argument(help="Name of the server."),
+        server_name: str,
         force: bool = False,
         cooldown: int = ty.Option(60, min=0, max=720, help="If the previous backup was less than this many minutes ago, the backup will be skipped."),
         limit: int = ty.Option(30, min=1, max=100, help="Maximum number of backups to keep.")
 ) -> None:
-    if server_name not in BedrockServer.list_servers():
-        print("Server does not exist.")
+    response = BedrockServer.load(server_name)
+    if isinstance(response, str):
+        print(response)
         return
     try:
-        BedrockServer(server_name).backup(enforce_cooldown_minutes=cooldown, backup_limit=limit, force_backup=force)
+        response.backup(cooldown, limit, force)
     except FileExistsError:
         print("Previous backup is too recent. No backup created.")
     except RuntimeError:
