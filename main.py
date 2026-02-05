@@ -12,7 +12,7 @@ def list_servers() -> None:
     if len(server_list) == 0:
         print("You don't have any servers.")
         return
-    print("Here are the servers you have (names case-insensitive):")
+    print("Here are the servers you have (names case-insensitive):\n")
     for server in server_list:
         server_object = BedrockServer(server)
         print(f" -> Name: {server}")
@@ -21,6 +21,7 @@ def list_servers() -> None:
             print(f"    RUNNING: {server_object.get_player_count()} online. Use \"{server_object.attach_session_command}\" to attach.")
         else:
             print("    OFFLINE")
+        print()
     if len(online_server_list):
         print("To detach from a server's screen session, the default keybind is Ctrl+A then D.")
 
@@ -70,7 +71,9 @@ def start(server_name: str) -> None:
         print("Server name is invalid.")
         return
     except OSError:
-        print("Ports conflict. Change the ports in the \"server.properties\" and try again.")
+        print("Potential ports conflict. Please check the following in server.properties:")
+        print(" -> Ensure that no other server is using the same ports.")
+        print(" -> Ensure enable-lan-visibility is set to false.")
         return
     else:
         print(f"Server started.")

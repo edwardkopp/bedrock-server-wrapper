@@ -14,6 +14,14 @@ class SystemUtilities:
     def __init__(self, server_name: str) -> None:
         Path(self._DIR).mkdir(parents=True, exist_ok=True)
         self.server_name = server_name.lower()
+        self._SERVER_PROPERTIES: dict[str, str] = {}
+        with open(join(self.server_subfolder, self._BEDROCK_SERVER_PROPERTIES_FILE_NAME), "r") as file:
+            for line in file:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                key, value = line.split("=", 1)
+                self._SERVER_PROPERTIES[key] = value.strip()
 
     @property
     def folder(self) -> str:
@@ -56,19 +64,12 @@ class SystemUtilities:
         with open(url_path, "w") as file:
             file.write(url)
 
-    def read_server_properties(self) -> dict[str, str]:
-        properties = {}
-        with open(join(self.server_subfolder, self._BEDROCK_SERVER_PROPERTIES_FILE_NAME), "r") as file:
-            for line in file:
-                line = line.strip()
-                if not line or line.startswith("#"):
-                    continue
-                key, value = line.split("=", 1)
-                properties[key] = value.strip()
-        return dict(properties)
-
     def get_server_property(self, key: str) -> str | None:
-        return self.read_server_properties().get(key, None)
+        return self._SERVER_PROPERTIES.get(key, None)
+
+    @property
+    def lan_visibility(self) -> bool:
+        return self.get_server_property("enable-lan-visibility") == "true"
 
     @property
     def port_number(self) -> int:

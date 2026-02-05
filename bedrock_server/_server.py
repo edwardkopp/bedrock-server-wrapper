@@ -67,6 +67,8 @@ class BedrockServer(SystemUtilities):
             other_server_ports = (other_server.port_number, other_server.port_number_ipv6)
             if self.port_number in other_server_ports or self.port_number_ipv6 in other_server_ports:
                 raise OSError("Server ports conflict with another server.")
+        if self.lan_visibility:
+            raise OSError("Server cannot be set to enable LAN visibility as it may cause port conflicts.")
         run(["screen", "-dmS", self._session_name, "bash", str(self.starter_path)])
 
     def stop(self, force_stop: bool = False) -> None:
