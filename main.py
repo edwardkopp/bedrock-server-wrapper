@@ -98,6 +98,9 @@ def purge(server_name: str) -> None:
     if server_name not in BedrockServer.list_servers():
         print("Server does not exist.")
         return
+    if server_name in BedrockServer.list_online_servers():
+        print("Server cannot be purged while running.")
+        return
     if not ty.confirm("Are you sure you want to purge the server? This cannot be undone."):
         print("Operation canceled.")
         return
