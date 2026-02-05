@@ -21,9 +21,8 @@ def list_servers() -> None:
             print(f"    RUNNING: {server_object.get_player_count()} online. Use \"{server_object.attach_session_command}\" to attach.")
         else:
             print("    OFFLINE")
-        print()
     if len(online_server_list):
-        print("To detach from a server's screen session, the default keybind is Ctrl+A then D.")
+        print("\nTo detach from a server's screen session, the default keybind is Ctrl+A then D.")
 
 
 @app.command(help="Creates a new server.")
