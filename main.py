@@ -145,5 +145,12 @@ def backup(
         print("Backup created.")
 
 
-if __name__ == "__main__":
+def main() -> None:
+    if not BedrockServer.check_screen():
+        print("screen is not installed. Please install it before using this program.")
+        return
     app()
+
+
+if __name__ == "__main__":
+    main()
