@@ -18,9 +18,9 @@ def list_servers() -> None:
         print(f" -> Name: {server}")
         print(f"    Ports: {server_object.port_number} (IPv4), {server_object.port_number_ipv6} (IPv6)")
         if server in online_server_list:
-            print(f"    Running: {server_object.get_player_count()} online. Use \"{server_object.attach_session_command}\" to attach.")
+            print(f"    RUNNING: {server_object.get_player_count()} online. Use \"{server_object.attach_session_command}\" to attach.")
         else:
-            print("    Offline.")
+            print("    OFFLINE")
     if len(online_server_list):
         print("To detach from a server's screen session, the default keybind is Ctrl+A then D.")
 
