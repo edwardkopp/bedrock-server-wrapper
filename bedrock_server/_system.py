@@ -12,6 +12,7 @@ class SystemUtilities:
     _BEDROCK_SERVER_PROPERTIES_FILE_NAME = "server.properties"
 
     def __init__(self, server_name: str) -> None:
+        Path(self._DIR).mkdir(parents=True, exist_ok=True)
         self.server_name = server_name.lower()
 
     @property
