@@ -18,11 +18,10 @@ def list_servers() -> None:
         print(f" -> Name: {server}")
         print(f"    Ports: {server_object.get_port_number()} (IPv4), {server_object.get_port_number(ipv6=True)} (IPv6)")
         if server in online_server_list:
-            print(f"    RUNNING: {server_object.get_player_count()} online. Use \"{server_object.attach_session_command}\" to attach.")
+            print(f"    {server_object.get_player_count()} online")
         else:
             print("    OFFLINE")
-    if len(online_server_list):
-        print("\nTo detach from a server's screen session, the default keybind is Ctrl+A then D.")
+    print()
 
 
 @app.command(help="Creates a new server.")
@@ -31,8 +30,7 @@ def new(server_name: str) -> None:
     if isinstance(response, str):
         print(response)
         return
-    print(f"Server created.")
-    print(f"Configuration files can be found at: {response.server_subfolder}")
+    print(f"Server created at: {response.server_subfolder}")
 
 
 @app.command(help="Shows command to attach to the specified server's screen session. Use in: eval \"$(...)\"")
@@ -66,13 +64,13 @@ def start(server_name: str) -> None:
         print("Server already running.")
     except OSError:
         print("Potential ports conflict. Please check the following in server.properties:")
+        print()
         print(" -> Ensure that no other server is using the same ports.")
-        print(" -> Ensure enable-lan-visibility is set to false.")
+        print(" -> Ensure \"enable-lan-visibility\" is set to \"false\".")
+        print()
         return
     else:
         print(f"Server started.")
-    print(f"If needed, attach to it with \"{response.attach_session_command}\".")
-    print("To detach from a server's screen session, the default is Ctrl+A then D.")
 
 
 @app.command(help="Stops the specified server.")
@@ -108,7 +106,7 @@ def purge(server_name: str) -> None:
 @app.command(help="Sends message to chat of the specified server.")
 def chat(
         server_name: str,
-        message: str = ty.Argument(help="Use \"&\" instead of \"§\" for styling, but grammatical use of \"&\" should appear normal.")) -> None:
+        message: str = ty.Argument(help="Optionally use \"&\" instead of \"§\" for styling.")) -> None:
     response = BedrockServer.load(server_name)
     if isinstance(response, str):
         print(response)
