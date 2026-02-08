@@ -16,7 +16,7 @@ def list_servers() -> None:
     for server in server_list:
         server_object = BedrockServer.load(server)
         print(f" -> Name: {server}")
-        print(f"    Ports: {server_object.port_number} (IPv4), {server_object.port_number_ipv6} (IPv6)")
+        print(f"    Ports: {server_object.get_port_number()} (IPv4), {server_object.get_port_number(ipv6=True)} (IPv6)")
         if server in online_server_list:
             print(f"    RUNNING: {server_object.get_player_count()} online. Use \"{server_object.attach_session_command}\" to attach.")
         else:

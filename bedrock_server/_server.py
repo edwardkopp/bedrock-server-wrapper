@@ -121,8 +121,8 @@ class BedrockServer:
             if server_name == self.server_name:
                 continue
             other_server = self.__class__(server_name, self._CONSTRUCTOR_BLOCKER)
-            other_server_ports = (other_server.port_number, other_server.port_number_ipv6)
-            if self.port_number in other_server_ports or self.port_number_ipv6 in other_server_ports:
+            other_server_ports = (other_server.get_port_number(), other_server.get_port_number(ipv6=True))
+            if self.get_port_number() in other_server_ports or self.get_port_number(ipv6=True) in other_server_ports:
                 raise OSError("Server ports conflict with another server.")
         if self._lan_visibility:
             raise OSError("Server cannot be set to enable LAN visibility as it may cause port conflicts.")
@@ -171,7 +171,7 @@ class BedrockServer:
         self._download_and_update()
 
     def get_player_count(self) -> int:
-        return _BedrockServerStatus("127.0.0.1", self.port_number).status().players.online
+        return _BedrockServerStatus("127.0.0.1", self.get_port_number()).status().players.online
 
     @classmethod
     def list_online_servers(cls) -> list[str]:
@@ -227,31 +227,16 @@ class BedrockServer:
         run(["chmod", "+x", self._executable_path], check=True)
         run(["chmod", "+x", self._starter_path], check=True)
 
-
-    def _get_server_property(self, key: str) -> str | None:
+    def _get_server_property(self, key: str, default: str | None = None) -> str | None:
         self._load_server_properties()
-        return self._SERVER_PROPERTIES.get(key, None)
+        return self._SERVER_PROPERTIES.get(key, default)
 
     @property
     def _lan_visibility(self) -> bool:
         return self._get_server_property("enable-lan-visibility") == "true"
 
-    @property
-    def port_number(self) -> int:
-        port = self._get_server_property("server-port")
-        if port is None:
-            raise KeyError("Server port not found in server.properties file.")
-        try:
-            port = int(port)
-        except TypeError:
-            raise TypeError("Server port in server.properties is not an integer.")
-        if port < 1024 or port > 65535:
-            raise ValueError("Server port value in server.properties is out of range (too high or low).")
-        return port
-
-    @property
-    def port_number_ipv6(self) -> int:
-        port = self._get_server_property("server-portv6")
+    def get_port_number(self, ipv6: bool = False) -> int:
+        port = self._get_server_property("server-port" if not ipv6 else "server-portv6")
         if port is None:
             raise KeyError("Server port not found in server.properties file.")
         try:
