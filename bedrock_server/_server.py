@@ -124,7 +124,7 @@ class BedrockServer:
             other_server_ports = (other_server.get_port_number(), other_server.get_port_number(ipv6=True))
             if self.get_port_number() in other_server_ports or self.get_port_number(ipv6=True) in other_server_ports:
                 raise OSError("Server ports conflict with another server.")
-        if self._lan_visibility:
+        if self._get_server_property("enable-lan-visibility") != "false":
             raise OSError("Server cannot be set to enable LAN visibility as it may cause port conflicts.")
         run(["screen", "-dmS", self._session_name, "bash", str(self._starter_path)])
 
@@ -230,10 +230,6 @@ class BedrockServer:
     def _get_server_property(self, key: str, default: str | None = None) -> str | None:
         self._load_server_properties()
         return self._SERVER_PROPERTIES.get(key, default)
-
-    @property
-    def _lan_visibility(self) -> bool:
-        return self._get_server_property("enable-lan-visibility") == "true"
 
     def get_port_number(self, ipv6: bool = False) -> int:
         port = self._get_server_property("server-port" if not ipv6 else "server-portv6")
