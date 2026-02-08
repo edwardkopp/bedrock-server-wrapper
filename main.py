@@ -35,11 +35,18 @@ def new(server_name: str) -> None:
     print(f"Configuration files can be found at: {response.server_subfolder}")
 
 
-@app.command(help="Shows path for the directory where server files are stored.")
+@app.command(help="Shows command to attach to the specified server's screen session. Use in: eval \"$(...)\"")
+def attach(server_name: str) -> None:
+    response = BedrockServer.load(server_name)
+    if isinstance(response, str):
+        return
+    print(response.attach_session_command)
+
+
+@app.command(help="Shows path for the directory where the specified server's files are stored. Use in: cd \"$(...)\"")
 def where(server_name: str, backups: bool = ty.Option(False, help="Shows path for backups directory instead of server files.")) -> None:
     response = BedrockServer.load(server_name)
     if isinstance(response, str):
-        print(response)
         return
     if backups:
         print(response.backups_subfolder)
