@@ -38,6 +38,8 @@ def attach(server_name: str) -> None:
     response = BedrockServer.load(server_name)
     if isinstance(response, str):
         return
+    if not response.is_running():
+        return
     print(response.attach_session_command)
 
 
