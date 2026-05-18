@@ -47,6 +47,15 @@ class BedrockServer:
     # Constructor blocker to allow methods to validate server_name differently
     _CONSTRUCTOR_BLOCKER = object()
 
+    class ServerRunningError(RuntimeError):
+        pass
+
+    class PortConflictError(RuntimeError):
+        pass
+
+    class PlayersOnServerError(RuntimeError):
+        pass
+
     def __init__(self, server_name: str, token: object) -> None:
         """
         :param server_name: Case-insensitive name for the server.
@@ -113,26 +122,25 @@ class BedrockServer:
         return f"screen -r {self._session_name}"
 
     def start(self) -> None:
-        try:
-            self._download()
-        except RuntimeError:
-            raise RuntimeError("Server is already running.")
+        if self.is_running():
+            raise self.ServerRunningError("Server is already running.")
+        self._download_and_update()
         for server_name in self.list_servers():
             if server_name == self.server_name:
                 continue
             other_server = self.__class__(server_name, self._CONSTRUCTOR_BLOCKER)
             other_server_ports = (other_server.get_port_number(), other_server.get_port_number(ipv6=True))
             if self.get_port_number() in other_server_ports or self.get_port_number(ipv6=True) in other_server_ports:
-                raise OSError("Server ports conflict with another server.")
+                raise self.PortConflictError("Server ports conflict with another server.")
         if self._get_server_property("enable-lan-visibility") != "false":
-            raise OSError("Server cannot be set to enable LAN visibility as it may cause port conflicts.")
+            raise self.PortConflictError("Server cannot be set to enable LAN visibility as it may cause port conflicts.")
         run(["screen", "-dmS", self._session_name, "bash", str(self._starter_path)])
 
     def stop(self, force_stop: bool = False) -> None:
         if not self.is_running():
             return
         if not force_stop and self.get_player_count():
-            raise RuntimeError("Cannot stop server while players are online without force stopping.")
+            raise self.PlayersOnServerError("Cannot stop server while players are online without force stopping.")
         self._execute("stop")
 
     def backup(self, enforce_cooldown_minutes: int, backup_limit: int, force_backup: bool = False) -> None:
@@ -144,8 +152,8 @@ class BedrockServer:
         if stop_and_restart:
             try:
                 self.stop(force_stop=force_backup)
-            except RuntimeError:
-                raise RuntimeError("Cannot backup server while players are online without force stopping.")
+            except self.PlayersOnServerError:
+                raise self.PlayersOnServerError("Cannot backup server while players are online without force stopping.")
         self._do_backup()
         if stop_and_restart:
             self.start()
@@ -164,11 +172,6 @@ class BedrockServer:
 
     def _execute(self, command: str) -> None:
         run(["screen", "-S", self._session_name, "-p", "0", "-X", "stuff", f"{command}\\n"])
-
-    def _download(self) -> None:
-        if self.is_running():
-            raise RuntimeError("Cannot download server while it is running.")
-        self._download_and_update()
 
     def get_player_count(self) -> int:
         return _BedrockServerStatus("127.0.0.1", self.get_port_number()).status().players.online

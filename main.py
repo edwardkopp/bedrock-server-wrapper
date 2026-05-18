@@ -15,6 +15,7 @@ def list_servers() -> None:
     print("Here are the servers you have (names case-insensitive):\n")
     for server in server_list:
         server_object = BedrockServer.load(server)
+        server_object: BedrockServer
         print(f" -> Name: {server}")
         print(f"    Ports: {server_object.get_port_number()} (IPv4), {server_object.get_port_number(ipv6=True)} (IPv6)")
         if server in online_server_list:
@@ -62,9 +63,9 @@ def start(server_name: str) -> None:
         return
     try:
         response.start()
-    except RuntimeError:
+    except BedrockServer.ServerRunningError:
         print("Server already running.")
-    except OSError:
+    except BedrockServer.PortConflictError:
         print("Potential ports conflict. Please check the following in server.properties:")
         print()
         print(" -> Ensure that no other server is using the same ports.")
@@ -83,7 +84,7 @@ def stop(server_name: str, force: bool = False) -> None:
         return
     try:
         response.stop(force)
-    except RuntimeError:
+    except BedrockServer.PlayersOnServerError:
         print("Server cannot be stopped as players are still online. Use the force option to do it anyway.")
         return
     print("Server stopped." if not force else "Server force stopped.")
@@ -135,7 +136,7 @@ def backup(
         response.backup(cooldown, limit, force)
     except FileExistsError:
         print("Previous backup is too recent. No backup created.")
-    except RuntimeError:
+    except BedrockServer.PlayersOnServerError:
         print("Server cannot be backed up as players are still online. Use the force option to do it anyway.")
     else:
         print("Backup created.")
