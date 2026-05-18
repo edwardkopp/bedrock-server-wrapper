@@ -1,5 +1,5 @@
 fake-useragent==2.2.0
-mcstatus==12.1.0
-pyinstaller==6.18.0
-requests==2.32.5
-typer==0.21.1
+mcstatus==13.1.0
+pyinstaller==6.20.0
+requests==2.34.2
+typer==0.25.1
