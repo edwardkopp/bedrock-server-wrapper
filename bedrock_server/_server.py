@@ -191,8 +191,8 @@ class BedrockServer:
         sleep(0.3)
         self._minecraft_execute("list")
         sleep(0.3)
-        temp_log = f"{self._session_name}.txt"
-        self._act_on_session("hardcopy", temp_log)
+        temp_log = Path(self._DIR).joinpath(f"{self._session_name}.txt")
+        self._act_on_session("hardcopy", str(temp_log))
         sleep(0.3)
         content_lines = []
         pattern = r"(\d+)/(\d+)\s+players?"
@@ -204,7 +204,7 @@ class BedrockServer:
             match = re.search(pattern, line)
             if match:
                 return int(match.group(1))
-        remove(temp_log)
+        temp_log.unlink()
         return -1
 
     @classmethod
