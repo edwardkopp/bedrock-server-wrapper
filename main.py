@@ -19,7 +19,11 @@ def list_servers() -> None:
         print(f" -> Name: {server}")
         print(f"    Ports: {server_object.get_port_number()} (IPv4), {server_object.get_port_number(ipv6=True)} (IPv6)")
         if server in online_server_list:
-            print(f"    {server_object.get_player_count()} online")
+            players = server_object.get_player_count()
+            if players < 0:
+                print(f"    Many are online")
+            else:
+                print(f"    {server_object.get_player_count()} online")
         else:
             print("    OFFLINE")
     print()

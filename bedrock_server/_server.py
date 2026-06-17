@@ -4,11 +4,13 @@ from subprocess import run
 from shutil import rmtree
 from re import sub
 from pathlib import Path
-from mcstatus import BedrockServer as _BedrockServerStatus
 import requests
 from zipfile import ZipFile
 from io import BytesIO
 from fake_useragent import UserAgent
+from time import sleep
+from os import remove
+import re
 
 
 class BedrockServer:
@@ -135,13 +137,15 @@ class BedrockServer:
         if self._get_server_property("enable-lan-visibility") != "false":
             raise self.PortConflictError("Server cannot be set to enable LAN visibility as it may cause port conflicts.")
         run(["screen", "-dmS", self._session_name, "bash", str(self._starter_path)])
+        sleep(0.5)
+        self._expand_session_height()
 
     def stop(self, force_stop: bool = False) -> None:
         if not self.is_running():
             return
         if not force_stop and self.get_player_count():
             raise self.PlayersOnServerError("Cannot stop server while players are online without force stopping.")
-        self._execute("stop")
+        self._minecraft_execute("stop")
 
     def backup(self, enforce_cooldown_minutes: int, backup_limit: int, force_backup: bool = False) -> None:
         last_backup = self._recent_backup_age_minutes()
@@ -163,18 +167,45 @@ class BedrockServer:
         if not self.is_running():
             return
         message = sub(r"&(?!\s)", "§", message)
-        self._execute(f"say {message}")
+        self._minecraft_execute(f"say {message}")
 
     def purge(self) -> None:
         if self.is_running():
             return
         rmtree(self._folder, ignore_errors=True)
 
-    def _execute(self, command: str) -> None:
-        run(["screen", "-S", self._session_name, "-p", "0", "-X", "stuff", f"{command}\\n"])
+    def _act_on_session(self, *args: str) -> None:
+        run(["screen", "-S", self._session_name, "-p", "0", "-X", *args])
+
+    def _minecraft_execute(self, command: str) -> None:
+        self._act_on_session("stuff", f"{command}\\n")
+
+    def _expand_session_height(self) -> None:
+        self._act_on_session("height", "200")
 
     def get_player_count(self) -> int:
-        return _BedrockServerStatus("127.0.0.1", self.get_port_number()).status().players.online
+        """
+        :return: Online player count, except -1 if unable to determine, typically due to many online
+        """
+        self._expand_session_height()
+        sleep(0.3)
+        self._minecraft_execute("list")
+        sleep(0.3)
+        temp_log = f"{self._session_name}.txt"
+        self._act_on_session("hardcopy", temp_log)
+        sleep(0.3)
+        content_lines = []
+        pattern = r"(\d+)/(\d+)\s+players?"
+        with open(temp_log, "r") as log:
+            content_lines = log.readlines()
+        for line in reversed(content_lines):
+            if "chat" in line.lower() or "<" in line:
+                continue
+            match = re.search(pattern, line)
+            if match:
+                return int(match.group(1))
+        remove(temp_log)
+        return -1
 
     @classmethod
     def list_online_servers(cls) -> list[str]:
