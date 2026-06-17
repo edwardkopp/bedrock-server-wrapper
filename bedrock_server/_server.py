@@ -9,7 +9,6 @@ from zipfile import ZipFile
 from io import BytesIO
 from fake_useragent import UserAgent
 from time import sleep
-from os import remove
 import re
 
 
@@ -191,7 +190,7 @@ class BedrockServer:
         sleep(0.3)
         self._minecraft_execute("list")
         sleep(0.3)
-        temp_log = Path(self._DIR).joinpath(f"{self._session_name}.txt")
+        temp_log = self._DIR.joinpath(f"{self._session_name}.txt")
         self._act_on_session("hardcopy", str(temp_log))
         sleep(0.3)
         content_lines = []
