@@ -137,7 +137,7 @@ class BedrockServer:
         if self._get_server_property("enable-lan-visibility") != "false":
             raise self.PortConflictError("Server cannot be set to enable LAN visibility as it may cause port conflicts.")
         run(["screen", "-dmS", self._session_name, "bash", str(self._starter_path)])
-        sleep(0.5)
+        sleep(0.3)
         self._expand_session_height()
 
     def stop(self, force_stop: bool = False) -> None:
