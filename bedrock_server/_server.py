@@ -196,7 +196,7 @@ class BedrockServer:
         sleep(0.3)
         content_lines = []
         pattern = r"(\d+)/(\d+)\s+players?"
-        with open(temp_log, "r") as log:
+        with open(temp_log, "r", errors="ignore") as log:
             content_lines = log.readlines()
         for line in reversed(content_lines):
             if "chat" in line.lower() or "<" in line:
