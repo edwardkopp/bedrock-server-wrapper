@@ -202,6 +202,7 @@ class BedrockServer:
                 continue
             match = re.search(pattern, line)
             if match:
+                temp_log.unlink()
                 return int(match.group(1))
         temp_log.unlink()
         return -1
