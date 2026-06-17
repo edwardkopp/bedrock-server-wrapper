@@ -23,7 +23,7 @@ def list_servers() -> None:
             if players < 0:
                 print(f"    Many are online")
             else:
-                print(f"    {server_object.get_player_count()} online")
+                print(f"    {players} online")
         else:
             print("    OFFLINE")
     print()
