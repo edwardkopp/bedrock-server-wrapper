@@ -134,7 +134,10 @@ class BedrockServer:
             if self.get_port_number() in other_server_ports or self.get_port_number(ipv6=True) in other_server_ports:
                 raise self.PortConflictError("Server ports conflict with another server.")
         if self._get_server_property("enable-lan-visibility") != "false":
-            raise self.PortConflictError("Server cannot be set to enable LAN visibility as it may cause port conflicts.")
+            user_confirmation = input("Enabling LAN visibility may cause port conflicts. Start anyways? (y/N)")
+            if user_confirmation != "y":
+                raise self.PortConflictError("Cancelling start: enabling LAN visibility may cause port conflicts.")
+
         run(["screen", "-dmS", self._session_name, "bash", str(self._starter_path)])
         sleep(0.3)
         self._expand_session_height()
