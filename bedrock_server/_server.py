@@ -131,8 +131,10 @@ class BedrockServer:
                 continue
             other_server = self.__class__(server_name, self._CONSTRUCTOR_BLOCKER)
             other_server_ports = (other_server.get_port_number(), other_server.get_port_number(ipv6=True))
+            # TODO perhaps make port checks only against RUNNING servers
             if self.get_port_number() in other_server_ports or self.get_port_number(ipv6=True) in other_server_ports:
                 raise self.PortConflictError("Server ports conflict with another server.")
+            # TODO perhaps check enable-lan-visibility of other RUNNING servers instead of asking dialogue question
         if self._get_server_property("enable-lan-visibility") != "false":
             user_confirmation = input("Enabling LAN visibility may cause port conflicts. Start anyways? (y/N)").rstrip()
             if user_confirmation != "y":
