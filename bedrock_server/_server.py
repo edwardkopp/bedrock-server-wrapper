@@ -140,7 +140,7 @@ class BedrockServer:
             if user_confirmation != "y":
                 raise self.PortConflictError("Cancelling start: enabling LAN visibility may cause port conflicts.")
         run(["screen", "-dmS", self._session_name, "bash", str(self._starter_path)])
-        sleep(0.3)
+        sleep(0.1)
         self._expand_session_height()
 
     def stop(self, force_stop: bool = False) -> None:
@@ -191,12 +191,12 @@ class BedrockServer:
         :return: Online player count, except -1 if unable to determine, typically due to many online
         """
         self._expand_session_height()
-        sleep(0.3)
+        sleep(0.1)
         self._minecraft_execute("list")
-        sleep(0.3)
+        sleep(0.1)
         temp_log = self._DIR.joinpath(f"{self._session_name}.txt")
         self._act_on_session("hardcopy", str(temp_log))
-        sleep(0.3)
+        sleep(0.1)
         content_lines = []
         pattern = r"(\d+)/(\d+)\s+players?"
         with open(temp_log, "r", errors="ignore") as log:
