@@ -126,19 +126,20 @@ class BedrockServer:
         if self.is_running():
             raise self.ServerRunningError("Server is already running.")
         self._download_and_update()
+        this_server_lan_visibility = self._get_server_property("enable-lan-visibility") != "false"
         for server_name in self.list_servers():
             if server_name == self.server_name:
                 continue
             other_server = self.__class__(server_name, self._CONSTRUCTOR_BLOCKER)
+            if not other_server.is_running():
+                continue
             other_server_ports = (other_server.get_port_number(), other_server.get_port_number(ipv6=True))
-            # TODO perhaps make port checks only against RUNNING servers
             if self.get_port_number() in other_server_ports or self.get_port_number(ipv6=True) in other_server_ports:
-                raise self.PortConflictError("Server ports conflict with another server.")
-            # TODO perhaps check enable-lan-visibility of other RUNNING servers instead of asking dialogue question
-        if self._get_server_property("enable-lan-visibility") != "false":
-            user_confirmation = input("Enabling LAN visibility may cause port conflicts. Start anyways? (y/N)").rstrip()
-            if user_confirmation != "y":
-                raise self.PortConflictError("Cancelling start: enabling LAN visibility may cause port conflicts.")
+                raise self.PortConflictError("Server ports conflict with another running server.")
+            if not this_server_lan_visibility:
+                continue
+            if other_server._get_server_property("enable-lan-visibility") != "false":
+                raise self.PortConflictError("Enabling LAN visibility may cause port conflicts with another running server.")
         run(["screen", "-dmS", self._session_name, "bash", str(self._starter_path)])
         sleep(0.1)
         self._expand_session_height()
