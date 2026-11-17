@@ -1,5 +1,6 @@
 [project]
 name = "bedrock-server-wrapper"
+dynamic = ["version"]
 requires-python = ">=3.15"
 dependencies = [
     "fake-useragent==2.2.0",
