@@ -15,7 +15,3 @@ It is recommended to use the packaged program. Below are the requirements to run
 - Latest Ubuntu LTS or Latest Debian Stable (other distros will work, but I don't test them)
 - x86_64 CPU
 - screen installed
-
-## Development
-
-Python 3.14; PIP dependencies can be found in: `requirements.txt`
